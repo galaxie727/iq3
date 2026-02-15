@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>IQ大戦（MVP）</title>
+<title>IQ大戦（MVP）- ガチIQ問題そのまま対戦</title>
 <style>
   :root{
-    --bg0:#07090c; --bg1:#0b0f14;
-    --text:#e9eef6; --muted: rgba(233,238,246,0.66);
+    --bg0:#07090c;
+    --bg1:#0b0f14;
+    --text:#e9eef6;
+    --muted: rgba(233,238,246,0.66);
+
     --stroke-weak: rgba(255,255,255,0.14);
     --stroke-strong: rgba(255,255,255,0.22);
+
     --good: rgba(52,243,160,0.42);
     --bad: rgba(255,77,109,0.42);
   }
@@ -20,23 +24,67 @@
       radial-gradient(1200px 600px at 20% 0%, rgba(52,243,160,0.10), transparent 60%),
       radial-gradient(900px 600px at 90% 20%, rgba(52,243,160,0.06), transparent 65%),
       linear-gradient(180deg, var(--bg0), var(--bg1));
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  .wrap{max-width:880px;margin:0 auto;padding:18px 14px 26px;}
-  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
-  h1{margin:0;font-size:18px;letter-spacing:.08em;font-weight:900;}
+  .wrap{ max-width: 900px; margin: 0 auto; padding: 18px 14px 26px; }
+  .topbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom: 12px; }
+  h1{ margin:0; font-size: 18px; letter-spacing: .08em; font-weight: 900; }
   .pill{
-    padding:8px 10px;border:1px solid var(--stroke-strong);
-    background:rgba(255,255,255,0.04);border-radius:12px;
-    font-size:12px;color:var(--muted);white-space:nowrap;height:fit-content;
+    padding:8px 10px;
+    border:1px solid var(--stroke-strong);
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space:nowrap;
+    height: fit-content;
   }
+
+  /* ===== ルール色分け：card枠（濃く） ===== */
   .card{
-    border:2px solid rgba(52,243,160,0.40);
-    background:rgba(255,255,255,0.045);
-    border-radius:16px;padding:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.38), 0 0 34px rgba(52,243,160,0.18);
+    --ruleGlow: rgba(52,243,160,0.22);
+    --ruleStroke: rgba(52,243,160,0.40);
+    border: 2px solid var(--ruleStroke);
+    background: rgba(255,255,255,0.045);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow:
+      0 10px 30px rgba(0,0,0,0.38),
+      0 0 0 1px var(--ruleGlow) inset,
+      0 0 34px var(--ruleGlow);
     backdrop-filter: blur(6px);
+  }
+
+  /* XOR寄り = グリーン */
+  .rule-xorxor, .rule-xoror, .rule-orxor, .rule-xorand, .rule-andxor, .rule-xorxnor, .rule-xnorxor{
+    --ruleGlow: rgba(52,243,160,0.22);
+    --ruleStroke: rgba(52,243,160,0.46);
+  }
+  /* OR/AND混在 = ブルー */
+  .rule-orand, .rule-andor, .rule-oror{
+    --ruleGlow: rgba(120,170,255,0.22);
+    --ruleStroke: rgba(120,170,255,0.48);
+  }
+  /* AND絡み多め = パープル */
+  .rule-andand, .rule-andxnor, .rule-xnorand, .rule-xnorxnor{
+    --ruleGlow: rgba(200,120,255,0.22);
+    --ruleStroke: rgba(200,120,255,0.50);
+  }
+  /* NOT絡み = レッド寄り */
+  .rule-notnot, .rule-notxor, .rule-xornot, .rule-notor, .rule-ornot, .rule-notand, .rule-andnot, .rule-notxnor, .rule-xnornot{
+    --ruleGlow: rgba(255,90,120,0.20);
+    --ruleStroke: rgba(255,90,120,0.46);
+  }
+  /* 2x2 回転 = オレンジ */
+  .rule-rot2{
+    --ruleGlow: rgba(255,175,90,0.22);
+    --ruleStroke: rgba(255,175,90,0.54);
+  }
+  /* “ユニーク/ペア系” = イエロー（triominoも流用） */
+  .rule-unique{
+    --ruleGlow: rgba(255,225,90,0.20);
+    --ruleStroke: rgba(255,225,90,0.54);
   }
 
   /* ===== SCORE ===== */
@@ -45,61 +93,87 @@
     grid-template-columns: 1fr auto 1fr;
     gap:10px;
     align-items:center;
-    margin-bottom:10px;
+    margin-bottom: 10px;
   }
   .panel{
     border:1px solid var(--stroke-strong);
-    background:rgba(0,0,0,0.20);
-    border-radius:14px;
-    padding:10px 12px;
+    background: rgba(0,0,0,0.20);
+    border-radius: 14px;
+    padding: 10px 12px;
   }
-  .name{font-weight:900;letter-spacing:.04em}
-  .sub{color:var(--muted);font-size:12px;margin-top:4px}
-  .stars{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+  .name{ font-weight: 900; letter-spacing:.04em; }
+  .sub{ color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .stars{ margin-top: 8px; display:flex; gap:6px; flex-wrap:wrap; }
   .star{
-    width:18px;height:18px;border-radius:6px;
+    width: 18px; height: 18px; border-radius: 6px;
     border:1px solid rgba(255,255,255,0.25);
-    background:rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.08);
   }
-  .star.on{border-color:rgba(52,243,160,0.55);background:rgba(52,243,160,0.20)}
+  .star.on{
+    border-color: rgba(52,243,160,0.55);
+    background: rgba(52,243,160,0.20);
+  }
   .mid{
     text-align:center;
-    padding:8px 10px;
-    border-radius:14px;
+    padding: 8px 10px;
+    border-radius: 14px;
     border:1px solid var(--stroke-strong);
-    background:rgba(255,255,255,0.03);
-    min-width:120px;
+    background: rgba(255,255,255,0.03);
+    min-width: 150px;
   }
-  .mid .round{font-weight:900}
-  .mid .timer{margin-top:4px;font-weight:900;letter-spacing:.06em}
+  .mid .round{ font-weight: 900; }
+  .mid .timer{ margin-top: 4px; font-weight: 900; letter-spacing:.06em; }
 
-  /* ===== PROBLEM AREA ===== */
-  .problemBox{
-    margin-top:10px;
-    border:1px solid var(--stroke-strong);
-    background:rgba(255,255,255,0.03);
-    border-radius:14px;
-    padding:12px;
+  /* ===== 問題 ===== */
+  .matrix{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
   }
-  .problemTitle{
-    font-weight:900; letter-spacing:.04em;
-    margin-bottom:8px;
-  }
-  .problemArea{
-    display:flex;gap:10px;flex-wrap:wrap;
-    align-items:flex-start;justify-content:space-between;
-  }
-  .dummyGrid{
-    flex: 1 1 360px;
+  .cell{
     border:1px solid var(--stroke-weak);
-    background:#fff;
-    border-radius:14px;
-    min-height:220px;
-    display:flex;align-items:center;justify-content:center;
-    color:#111;font-weight:900;
+    background: #fff;
+    border-radius: 14px;
+    overflow:hidden;
+    aspect-ratio: 1 / 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .cell.q{ position:relative; }
+  .qmark{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size: 34px; color:#111;
+    letter-spacing:.05em;
   }
 
-  /* ===== OPTIONS ===== */
+  /* ===== メッセージ ===== */
+  .msg{
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border:1px solid var(--stroke-strong);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    min-height: 42px;
+    text-align:center;
+  }
+  .msg.ok{
+    border-color: var(--good);
+    background: rgba(52,243,160,0.12);
+    color: #d7fff0;
+  }
+  .msg.ng{
+    border-color: var(--bad);
+    background: rgba(255,77,109,0.12);
+    color: #ffe1e1;
+  }
+
+  /* ===== 選択肢 ===== */
   .opts{
     display:grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -109,163 +183,177 @@
     margin:12px auto 0;
   }
   .opt{
-    border:1px solid var(--stroke-weak);
-    background:rgba(255,255,255,0.045);
-    border-radius:14px;
-    padding:10px 10px;
+    border: 1px solid var(--stroke-weak);
+    background: rgba(255,255,255,0.045);
+    border-radius: 14px;
+    padding: 8px;
     cursor:pointer;
-    display:flex;gap:10px;align-items:center;justify-content:flex-start;
-    min-height:72px;
     transition: transform .06s ease, border-color .12s ease, opacity .12s ease;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    justify-content:flex-start;
+    min-height: 72px;
   }
-  .opt:active{transform:translateY(1px)}
-  .opt:hover{border-color:rgba(52,243,160,0.35)}
-  .opt[disabled]{opacity:.45;cursor:not-allowed}
+  .opt:active{ transform: translateY(1px); }
+  .opt:hover{ border-color: rgba(52,243,160,0.35); }
+  .opt[disabled]{ opacity:.45; cursor:not-allowed; }
+
   .badge{
-    width:28px;height:28px;border-radius:10px;
-    display:flex;align-items:center;justify-content:center;
-    border:1px solid rgba(52,243,160,0.40);
-    color:rgba(52,243,160,0.95);
-    background:rgba(0,0,0,0.18);
-    font-weight:900; flex:0 0 auto;
+    width: 26px; height: 26px;
+    border-radius: 9px;
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid rgba(52,243,160,0.40);
+    color: rgba(52,243,160,0.95);
+    background: rgba(0,0,0,0.18);
+    font-weight: 900;
+    flex: 0 0 auto;
   }
   .thumb{
-    flex:1 1 auto;
-    border-radius:12px;
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    overflow:hidden;
     border:1px solid rgba(255,255,255,0.18);
-    background:rgba(0,0,0,0.10);
-    padding:8px 10px;
-    font-weight:900;
-    letter-spacing:.06em;
-    text-align:center;
+    background:#fff;
+    flex: 0 0 auto;
+    display:flex; align-items:center; justify-content:center;
   }
 
-  /* ===== MESSAGE ===== */
-  .msg{
-    margin-top:12px;
-    padding:10px 12px;
-    border-radius:12px;
-    border:1px solid var(--stroke-strong);
-    background:rgba(255,255,255,0.04);
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.45;
-    min-height:44px;
-    text-align:center;
+  /* ===== ボタン ===== */
+  .row{
+    display:flex; gap:10px; flex-wrap:wrap;
+    align-items:center; justify-content:space-between;
+    margin-top: 12px;
   }
-  .msg.ok{border-color:var(--good);background:rgba(52,243,160,0.12);color:#d7fff0;}
-  .msg.ng{border-color:var(--bad); background:rgba(255,77,109,0.12); color:#ffe1e1;}
-
-  /* ===== CONTROLS ===== */
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px;}
   .btn{
-    border:1px solid rgba(52,243,160,0.30);
-    background:linear-gradient(180deg, rgba(52,243,160,0.20), rgba(52,243,160,0.07));
-    color:var(--text);
-    padding:10px 12px;
-    border-radius:12px;
+    border: 1px solid rgba(52,243,160,0.30);
+    background: linear-gradient(180deg, rgba(52,243,160,0.20), rgba(52,243,160,0.07));
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 12px;
     cursor:pointer;
-    font-weight:900;
+    font-weight: 900;
     letter-spacing:.04em;
-    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
   }
   .btn.secondary{
-    border:1px solid rgba(255,255,255,0.16);
-    background:rgba(255,255,255,0.07);
-    color:rgba(233,238,246,0.88);
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.07);
+    color: rgba(233,238,246,0.88);
   }
-  .tiny{font-size:12px;color:var(--muted);}
+  .tiny{ font-size: 12px; color: var(--muted); }
 
-  /* small screens */
+  details{
+    margin-top: 12px;
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.035);
+  }
+  details > summary{ cursor:pointer; font-weight: 900; color: rgba(233,238,246,0.82); }
+  .small{ color: var(--muted); font-size: 12px; line-height: 1.55; margin-top: 8px; white-space: pre-wrap; }
+
+  /* SVG枠が沈まない（黒マス側のみ） */
+  .matrix svg rect[stroke="#000"]{ stroke: rgba(255,255,255,0.35) !important; }
+
   @media (max-width: 420px){
-    .scoreRow{grid-template-columns: 1fr; }
-    .mid{order:-1}
-    .opts{grid-template-columns: repeat(2, minmax(0, 1fr));}
+    .scoreRow{ grid-template-columns: 1fr; }
+    .mid{ order:-1; }
+    .opts{ grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 360px; }
   }
 </style>
 </head>
+
 <body>
 <div class="wrap">
   <div class="topbar">
     <div><h1>IQ大戦（MVP）</h1></div>
-    <div class="pill" id="pill">未開始</div>
+    <div class="pill" id="statusPill">未開始</div>
   </div>
 
-  <div class="card">
+  <div class="card" id="card">
     <div class="scoreRow">
       <div class="panel">
         <div class="name">Player</div>
-        <div class="sub" id="pSub">—</div>
+        <div class="sub" id="pSub">Rank 2</div>
         <div class="stars" id="pStars"></div>
       </div>
 
       <div class="mid">
-        <div class="round" id="roundText">Round 1</div>
+        <div class="round" id="roundText">Round 1 / 5</div>
         <div class="timer" id="timerText">30.0</div>
-        <div class="tiny" id="modeText">同時回答＋早さ判定 / 引き分けは再戦</div>
+        <div class="tiny">同時回答＋早さ判定 / 引き分けは再戦 / 3先取</div>
       </div>
 
       <div class="panel">
         <div class="name">CPU</div>
-        <div class="sub" id="eSub">—</div>
+        <div class="sub" id="eSub">Rank 2</div>
         <div class="stars" id="eStars"></div>
       </div>
     </div>
 
-    <div class="problemBox">
-      <div class="problemTitle">？の部分に入る図形を選んでください。</div>
-      <div class="problemArea">
-        <!-- ここを「ガチIQの matrix render」に置き換えOK -->
-        <div class="dummyGrid" id="problemView">DUMMY QUESTION</div>
-      </div>
+    <div class="matrix" id="matrix"></div>
 
-      <div class="opts" id="opts"></div>
-      <div class="msg" id="msg">「開始」を押すと、同時にスタートします。</div>
+    <div class="msg" id="msg">「開始」を押すと同時にスタートします。</div>
+    <div class="opts" id="opts"></div>
 
-      <div class="row">
-        <button class="btn" id="startBtn">開始</button>
-        <button class="btn secondary" id="nextBtn" disabled>次へ</button>
-      </div>
+    <div class="row">
+      <button class="btn" id="startBtn">開始</button>
+      <button class="btn secondary" id="nextBtn" disabled>次へ</button>
     </div>
+
+    <details>
+      <summary>（開発用）今回の生成ルールを見る</summary>
+      <div class="small" id="debug"></div>
+    </details>
   </div>
 </div>
 
 <script>
 (() => {
-  // ========= Config =========
-  const MAX_ROUNDS = 5;
-  const WIN_NEED = 3;
-  const LIMIT_SEC = 30;
+  /* =========================
+     対戦ルール
+     ========================= */
+  const MAX_ROUNDS = 5;   // 表示上のラウンド上限
+  const WIN_NEED  = 3;    // 3先取
+  const LIMIT_SEC = 30;   // 制限時間（秒）
 
-  // ランク(仮)：0〜5 くらいで調整
+  // ランク（仮）: 0〜5くらい想定
   let playerRank = 2;
-  let cpuRank = 2;
+  let cpuRank    = 2;
 
   const LABELS = ["A","B","C","D","E","F"];
 
-  // ========= Elements =========
-  const $pill = document.getElementById("pill");
+  /* =========================
+     DOM
+     ========================= */
+  const $card = document.getElementById("card");
+  const $matrix = document.getElementById("matrix");
+  const $opts = document.getElementById("opts");
+  const $msg = document.getElementById("msg");
+  const $debug = document.getElementById("debug");
+
+  const $pill = document.getElementById("statusPill");
   const $roundText = document.getElementById("roundText");
   const $timerText = document.getElementById("timerText");
-  const $modeText = document.getElementById("modeText");
-  const $msg = document.getElementById("msg");
-  const $opts = document.getElementById("opts");
-  const $problem = document.getElementById("problemView");
+
   const $startBtn = document.getElementById("startBtn");
-  const $nextBtn = document.getElementById("nextBtn");
+  const $nextBtn  = document.getElementById("nextBtn");
 
   const $pStars = document.getElementById("pStars");
   const $eStars = document.getElementById("eStars");
   const $pSub = document.getElementById("pSub");
   const $eSub = document.getElementById("eSub");
 
-  // ========= State =========
+  /* =========================
+     状態
+     ========================= */
   const state = {
     matchEnded:false,
-    round:1,          // 表示ラウンド（引き分け再戦でも増えない）
-    played:0,         // 消化した問題数（引き分けでも増やさない方針なら round と同義でOK）
+    round:1,     // 引き分け再戦のときは増やさない
     pScore:0,
     eScore:0,
+
     running:false,
     t0:0,
     timerId:null,
@@ -278,9 +366,10 @@
     eTimerId:null,
   };
 
-  // ========= Utils =========
   const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
   const now = ()=>performance.now();
+
+  function setPill(t){ $pill.textContent = t; }
 
   function setMsg(text, kind=""){
     $msg.classList.remove("ok","ng");
@@ -288,90 +377,25 @@
     $msg.textContent = text;
   }
 
-  function setPill(text){ $pill.textContent = text; }
-
   function drawStars($el, on){
     $el.innerHTML = "";
     for(let i=0;i<WIN_NEED;i++){
       const d = document.createElement("div");
-      d.className = "star" + (i<on ? " on": "");
+      d.className = "star" + (i<on ? " on" : "");
       $el.appendChild(d);
     }
   }
 
   function updateHeader(){
     $roundText.textContent = `Round ${state.round} / ${MAX_ROUNDS}`;
-    drawStars($pStars, state.pScore);
-    drawStars($eStars, state.eScore);
     $pSub.textContent = `Rank ${playerRank}`;
     $eSub.textContent = `Rank ${cpuRank}`;
-  }
-
-  // ========= Dummy Question =========
-  // ここを「ガチIQの生成 q = pickGenerator()()」に差し替え可能
-  function makeDummyQuestion(){
-    const ansIndex = Math.floor(Math.random()*6);
-    return {
-      type:"dummy",
-      ansIndex,
-      options: LABELS.map(x=>x),
-      // 難易度(0.0〜1.0)をCPUの精度/速度に渡す
-      difficulty: 0.45 + Math.random()*0.25, // 0.45〜0.70
-      prompt: "DUMMY QUESTION"
-    };
-  }
-
-  // ========= CPU AI (②のコアをここで使用) =========
-  // 人間っぽさ：たまに迷う / 速い時と遅い時がある / 難しいと遅く＆ミスる
-  function cpuPlan(q){
-    return planCpuAnswer({
-      cpuRank,
-      playerRank,
-      difficulty: q.difficulty ?? 0.55,
-      limitSec: LIMIT_SEC,
-      // ちょい“満員御礼っぽく強いCPU”にしたい時はここ上げる
-      excitementBias: 0.03,
-    });
-  }
-
-  // ========= Render =========
-  function renderOptions(q){
-    $opts.innerHTML = "";
-    q.options.forEach((label, idx)=>{
-      const btn = document.createElement("button");
-      btn.className = "opt";
-      btn.type = "button";
-      btn.disabled = true; // 開始までロック
-      btn.addEventListener("click", ()=>onPlayerPick(idx));
-
-      const b = document.createElement("div");
-      b.className = "badge";
-      b.textContent = LABELS[idx];
-
-      const t = document.createElement("div");
-      t.className = "thumb";
-      t.textContent = label;
-
-      btn.appendChild(b);
-      btn.appendChild(t);
-      $opts.appendChild(btn);
-    });
+    drawStars($pStars, state.pScore);
+    drawStars($eStars, state.eScore);
   }
 
   function setOptionsEnabled(on){
-    [...$opts.querySelectorAll("button.opt")].forEach(b=>b.disabled = !on);
-  }
-
-  function renderQuestion(q){
-    $problem.textContent = q.prompt || "QUESTION";
-    renderOptions(q);
-  }
-
-  // ========= Round control =========
-  function resetPicks(){
-    state.pPick = null; state.pTime = null;
-    state.ePick = null; state.eTime = null;
-    if(state.eTimerId){ clearTimeout(state.eTimerId); state.eTimerId=null; }
+    [...$opts.querySelectorAll("button.opt")].forEach(b => b.disabled = !on);
   }
 
   function stopTimer(){
@@ -383,16 +407,21 @@
     stopTimer();
     state.running = true;
     state.t0 = now();
+
     const tick = ()=>{
       const t = (now()-state.t0)/1000;
       const left = clamp(LIMIT_SEC - t, 0, LIMIT_SEC);
       $timerText.textContent = left.toFixed(1);
-      if(left<=0){
-        onTimeout();
-      }
+      if(left<=0) onTimeout();
     };
     tick();
     state.timerId = setInterval(tick, 50);
+  }
+
+  function resetPicks(){
+    state.pPick = null; state.pTime = null;
+    state.ePick = null; state.eTime = null;
+    if(state.eTimerId){ clearTimeout(state.eTimerId); state.eTimerId=null; }
   }
 
   function onTimeout(){
@@ -400,12 +429,10 @@
     stopTimer();
     setOptionsEnabled(false);
 
-    // プレイヤー未回答なら不正解扱い
     if(state.pPick===null){
       state.pPick = -1;
       state.pTime = LIMIT_SEC;
     }
-    // CPU未回答なら不正解扱い
     if(state.ePick===null){
       state.ePick = -1;
       state.eTime = LIMIT_SEC;
@@ -416,19 +443,13 @@
   function onPlayerPick(idx){
     if(!state.running) return;
     if(state.pPick!==null) return;
-
     state.pPick = idx;
     state.pTime = (now()-state.t0)/1000;
-
-    // 片方が答えた瞬間に終わらせない（同時回答感）
-    // CPUがまだなら、CPUの予定時刻まで待つ or 0.25秒猶予
     maybeFinishSoon();
   }
 
   function maybeFinishSoon(){
     if(state.pPick===null || state.ePick===null) return;
-
-    // 両者揃った
     stopTimer();
     setOptionsEnabled(false);
     judgeAndFinish();
@@ -439,7 +460,7 @@
     const pCorrect = (state.pPick === ans);
     const eCorrect = (state.ePick === ans);
 
-    // 判定優先：正解＞速度＞引き分け再戦
+    // 両正解→早い方
     if(pCorrect && eCorrect){
       if(state.pTime < state.eTime){
         state.pScore++;
@@ -449,29 +470,34 @@
         setMsg(`両者正解。CPUの方が速い（${state.eTime.toFixed(2)}s）❌`, "ng");
       }else{
         setMsg(`両者正解＆同タイム。引き分け → 再戦`, "");
-        // 引き分け：roundは増やさない
+        setPill("引き分け");
         $nextBtn.disabled = false;
         $startBtn.disabled = true;
-        setPill("引き分け");
+        updateHeader();
         return;
       }
-    }else if(pCorrect){
+    }
+    // 片正解
+    else if(pCorrect){
       state.pScore++;
       setMsg(`Player 正解（${state.pTime.toFixed(2)}s）✅`, "ok");
     }else if(eCorrect){
       state.eScore++;
       setMsg(`CPU 正解（${state.eTime.toFixed(2)}s）❌`, "ng");
-    }else{
+    }
+    // 両不正解→再戦
+    else{
       setMsg(`両者不正解。引き分け → 再戦`, "");
+      setPill("引き分け");
       $nextBtn.disabled = false;
       $startBtn.disabled = true;
-      setPill("引き分け");
+      updateHeader();
       return;
     }
 
     updateHeader();
 
-    // 終了チェック
+    // 勝敗
     if(state.pScore>=WIN_NEED || state.eScore>=WIN_NEED){
       state.matchEnded = true;
       setPill("対戦終了");
@@ -482,10 +508,11 @@
       return;
     }
 
-    // ラウンド進行
+    // 次ラウンドへ
     state.round++;
-    if(state.round>MAX_ROUNDS){
-      // ここまで来るのは「引き分け多発」でroundが進んだ場合だけ（基本は3先取で終了）
+    if(state.round > MAX_ROUNDS){
+      // ここに来るのは引き分け多発で上限超えた時の保険
+      state.matchEnded = true;
       setPill("対戦終了");
       $startBtn.disabled = true;
       $nextBtn.disabled = true;
@@ -498,150 +525,862 @@
     $startBtn.disabled = true;
   }
 
-  function scheduleCpuAnswer(){
-    const plan = cpuPlan(state.q);
-    state.eTimerId = setTimeout(()=>{
-      // CPU確定
-      state.ePick = plan.pickIndex;
-      state.eTime = plan.timeSec;
-
-      // 表示用（デバッグしたいならsubに出す）
-      // $eSub.textContent = `Rank ${cpuRank} / ${plan.pickLabel} / ${plan.timeSec.toFixed(2)}s`;
-
-      maybeFinishSoon();
-    }, plan.timeSec*1000);
+  function nextStep(){
+    if(state.matchEnded) return;
+    setPill("待機");
+    setMsg("「開始」を押すとスタートします。");
+    $startBtn.disabled = false;
+    $nextBtn.disabled = true;
   }
 
+  /* =========================
+     ここから：あなたの「今までのやつ」(生成・描画)
+     ========================= */
+
+  // ========= Utils =========
+  const deepEq = (a,b) => a.length===b.length && a.every((v,i)=>v===b[i]);
+  const rndInt = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+  const shuffle = (arr) => {
+    const a = arr.slice();
+    for (let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  };
+  const countOnes = (c) => c.reduce((s,v)=>s+(v?1:0),0);
+  const cellKey = (c) => c.join("");
+
+  // triomino option key
+  const triKey = (op) => {
+    const e = op.empty2x2.join(",");
+    const s = op.symbols3.slice().sort().join("|");
+    return `${e}::${s}`;
+  };
+
+  // ========= Cell ops (3×3 flat 9) =========
+  function rot90(c){ return [c[6],c[3],c[0], c[7],c[4],c[1], c[8],c[5],c[2]]; }
+  function rot180(c){ return rot90(rot90(c)); }
+  function flipH(c){ return [c[2],c[1],c[0], c[5],c[4],c[3], c[8],c[7],c[6]]; }
+  function flipV(c){ return [c[6],c[7],c[8], c[3],c[4],c[5], c[0],c[1],c[2]]; }
+  function shiftRight(c){ return [c[2],c[0],c[1], c[5],c[3],c[4], c[8],c[6],c[7]]; }
+  function shiftDown(c){ return [c[6],c[7],c[8], c[0],c[1],c[2], c[3],c[4],c[5]]; }
+
+  function xor(a,b){ return a.map((v,i)=> (v ^ b[i]) ); }
+  function or(a,b){  return a.map((v,i)=> (v | b[i]) ); }
+  function and(a,b){ return a.map((v,i)=> (v & b[i]) ); }
+  function not(a){   return a.map(v => v ? 0 : 1); }
+  function xnor(a,b){ return not(xor(a,b)); }
+
+  function swap2(c){
+    const a = c.slice();
+    const i = rndInt(0,8);
+    let j = rndInt(0,8);
+    if (j===i) j = (j+1)%9;
+    [a[i],a[j]] = [a[j],a[i]];
+    return a;
+  }
+  function toggleK(c, k=1){
+    const a = c.slice();
+    const idx = shuffle([...Array(9)].map((_,i)=>i)).slice(0, k);
+    idx.forEach(i => a[i] = a[i] ? 0 : 1);
+    return a;
+  }
+
+  // ほどよい密度のランダム
+  function randCellDense(minOnes=2, maxOnes=4){
+    let guard=0;
+    while (guard++ < 400){
+      const k = rndInt(minOnes, maxOnes);
+      const pos = shuffle([...Array(9)].map((_,i)=>i)).slice(0,k);
+      const c = Array(9).fill(0);
+      pos.forEach(i => c[i]=1);
+      return c;
+    }
+    return Array(9).fill(0);
+  }
+
+  // ========= SVG render (3x3 black squares) =========
+  function cellToSVG(c, size=140){
+    const s = size/3;
+    let rects = "";
+    for(let i=0;i<9;i++){
+      if(c[i]){
+        const x = (i%3)*s, y = Math.floor(i/3)*s;
+        rects += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#000"/>`;
+      }
+    }
+    const grid =
+    `<path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
+      stroke="rgba(255,255,255,0.35)" stroke-width="3" />
+     <path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
+      stroke="rgba(0,0,0,0.18)" stroke-width="1" />`;
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+      <rect width="${size}" height="${size}" fill="#fff" stroke="#000" stroke-width="2"/>
+      ${rects}${grid}
+    </svg>`;
+  }
+
+  function buildOptions(answer){
+    const candidates = [];
+    const add = (c) => {
+      const k = cellKey(c);
+      if (!candidates.some(x => cellKey(x)===k)) candidates.push(c);
+    };
+
+    add(answer);
+    add(rot90(answer));
+    add(rot180(answer));
+    add(flipH(answer));
+    add(flipV(answer));
+    add(shiftRight(answer));
+    add(shiftDown(answer));
+    add(xor(answer, rot90(answer)));
+    add(toggleK(answer,1));
+    add(toggleK(answer,2));
+    add(swap2(answer));
+
+    const filtered = candidates.filter(c => {
+      const ones = countOnes(c);
+      return ones >= 1 && ones <= 8;
+    });
+
+    const distractPool = filtered.filter(c => !deepEq(c, answer));
+    const distractors = shuffle(distractPool).slice(0, 5);
+
+    let tries = 0;
+    while (distractors.length < 5 && tries < 80){
+      tries++;
+      const variant = toggleK(answer, rndInt(1,2));
+      if (!deepEq(variant, answer) && !distractors.some(d => deepEq(d, variant))){
+        const ones = countOnes(variant);
+        if (ones >= 1 && ones <= 8) distractors.push(variant);
+      }
+    }
+
+    const options = shuffle([answer, ...distractors]).slice(0,6);
+    const ansIndex = options.findIndex(o => deepEq(o, answer));
+    return { options, ansIndex };
+  }
+
+  // ========= Symbol SVG (triomino) =========
+  const SYMBOLS = [
+    "circle",
+    "square",
+    "triangle",
+    "dot",
+    "bullseye",
+    "circle_cross",
+    "diamond",
+    "circle_slash",
+  ];
+
+  function symbolSVG(sym, size=44){
+    const s = size;
+    const cx = s/2, cy = s/2;
+    const stroke = "#111";
+    const sw = 3.2;
+
+    const bg = `<rect width="${s}" height="${s}" rx="${Math.max(8, s*0.18)}" ry="${Math.max(8, s*0.18)}" fill="#fff"/>`;
+
+    const dot = `<circle cx="${cx}" cy="${cy}" r="${s*0.13}" fill="${stroke}" />`;
+    const circle = `<circle cx="${cx}" cy="${cy}" r="${s*0.22}" fill="none" stroke="${stroke}" stroke-width="${sw}" />`;
+    const square = `<rect x="${s*0.30}" y="${s*0.30}" width="${s*0.40}" height="${s*0.40}" fill="none" stroke="${stroke}" stroke-width="${sw}" />`;
+    const tri = `<path d="M ${cx} ${s*0.24} L ${s*0.74} ${s*0.72} L ${s*0.26} ${s*0.72} Z" fill="none" stroke="${stroke}" stroke-width="${sw}" />`;
+    const bull = `
+      <circle cx="${cx}" cy="${cy}" r="${s*0.26}" fill="none" stroke="${stroke}" stroke-width="${sw}" />
+      <circle cx="${cx}" cy="${cy}" r="${s*0.10}" fill="${stroke}" />
+    `;
+    const circle_cross = `
+      <circle cx="${cx}" cy="${cy}" r="${s*0.26}" fill="none" stroke="${stroke}" stroke-width="${sw}" />
+      <path d="M ${cx} ${s*0.22} V ${s*0.78} M ${s*0.22} ${cy} H ${s*0.78}"
+        stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round"/>
+    `;
+    const diamond = `<path d="M ${cx} ${s*0.22} L ${s*0.78} ${cy} L ${cx} ${s*0.78} L ${s*0.22} ${cy} Z"
+      fill="none" stroke="${stroke}" stroke-width="${sw}"/>`;
+    const circle_slash = `
+      <circle cx="${cx}" cy="${cy}" r="${s*0.26}" fill="none" stroke="${stroke}" stroke-width="${sw}" />
+      <path d="M ${s*0.28} ${s*0.72} L ${s*0.72} ${s*0.28}"
+        stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round"/>
+    `;
+
+    let shape = circle;
+    if (sym==="square") shape = square;
+    else if (sym==="triangle") shape = tri;
+    else if (sym==="dot") shape = dot;
+    else if (sym==="bullseye") shape = bull;
+    else if (sym==="circle_cross") shape = circle_cross;
+    else if (sym==="diamond") shape = diamond;
+    else if (sym==="circle_slash") shape = circle_slash;
+
+    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">
+      ${bg}
+      ${shape}
+    </svg>`;
+  }
+
+  function triominoOptionSVG(opt, size=64){
+    const s = size;
+    const pad = 6;
+    const cell = (s - pad*2) / 2;
+    const [er, ec] = opt.empty2x2;
+
+    let idx = 0;
+    let parts = `<rect width="${s}" height="${s}" rx="12" ry="12" fill="#fff" stroke="rgba(0,0,0,0.18)" stroke-width="2"/>`;
+
+    for(let r=0;r<2;r++){
+      for(let c=0;c<2;c++){
+        const x = pad + c*cell;
+        const y = pad + r*cell;
+        parts += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="2"/>`;
+        if (r===er && c===ec) continue;
+        const sym = opt.symbols3[idx++];
+        const icon = symbolSVG(sym, Math.floor(cell*0.78));
+        parts += `<g transform="translate(${x + cell*0.11}, ${y + cell*0.11})">${icon}</g>`;
+      }
+    }
+    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">${parts}</svg>`;
+  }
+
+  // ========= Rule registry =========
+  const RULES = [
+    { id:"xor",  name:"右 = 左 XOR 中央",  f:(L,M)=>xor(L,M) },
+    { id:"or",   name:"右 = 左 OR 中央",   f:(L,M)=>or(L,M)  },
+    { id:"and",  name:"右 = 左 AND 中央",  f:(L,M)=>and(L,M) },
+    { id:"xnor", name:"右 = 左 XNOR 中央", f:(L,M)=>xnor(L,M)},
+    { id:"not",  name:"右 = NOT(左)",      f:(L,M)=>not(L)   },
+  ];
+  const getRule = (id) => RULES.find(r => r.id===id);
+
+  const RULESETS = [
+    { row:"xor",  col:"xor"  },
+    { row:"or",   col:"xor"  },
+    { row:"xor",  col:"or"   },
+    { row:"and",  col:"xor"  },
+    { row:"xor",  col:"and"  },
+    { row:"or",   col:"and"  },
+    { row:"and",  col:"or"   },
+    { row:"xnor", col:"xor"  },
+    { row:"xor",  col:"xnor" },
+    { row:"xnor", col:"xnor" },
+    { row:"not",  col:"xor"  },
+    { row:"xor",  col:"not"  },
+    { row:"not",  col:"not"  },
+  ];
+
+  // ========= Generator A: 3x3 row/col ops =========
+  function genMatrixRowColOps(){
+    const pickSet = RULESETS[Math.floor(Math.random()*RULESETS.length)];
+    const rowRule = getRule(pickSet.row);
+    const colRule = getRule(pickSet.col);
+
+    function makeSolvedGrid(){
+      const a11 = randCellDense(2,4);
+      const a12 = randCellDense(2,4);
+      const a21 = randCellDense(2,4);
+      const a22 = randCellDense(2,4);
+
+      const a13 = rowRule.f(a11, a12);
+      const a23 = rowRule.f(a21, a22);
+
+      const a31 = colRule.f(a11, a21);
+      const a32 = colRule.f(a12, a22);
+
+      const fromRow = rowRule.f(a31, a32);
+      const fromCol = colRule.f(a13, a23);
+      if (!deepEq(fromRow, fromCol)) return null;
+
+      const a33 = fromRow;
+      return [
+        [a11, a12, a13],
+        [a21, a22, a23],
+        [a31, a32, a33],
+      ];
+    }
+
+    let grid = null;
+    for (let t=0;t<1200;t++){
+      const g = makeSolvedGrid();
+      if (!g) continue;
+      const all = g.flat();
+      const onesList = all.map(countOnes);
+      const tooExtreme = onesList.some(x => x <= 1 || x >= 8);
+      const uniq = new Set(all.map(cellKey)).size;
+      if (tooExtreme) continue;
+      if (uniq < 7) continue;
+      grid = g; break;
+    }
+    if (!grid){
+      const a11 = randCellDense(2,4);
+      const a12 = randCellDense(2,4);
+      const a21 = randCellDense(2,4);
+      const a22 = randCellDense(2,4);
+      const a13 = xor(a11,a12);
+      const a23 = xor(a21,a22);
+      const a31 = xor(a11,a21);
+      const a32 = xor(a12,a22);
+      const a33 = xor(a31,a32);
+      grid = [[a11,a12,a13],[a21,a22,a23],[a31,a32,a33]];
+    }
+
+    const answer = grid[2][2];
+    const gridWithHole = [
+      [grid[0][0], grid[0][1], grid[0][2]],
+      [grid[1][0], grid[1][1], grid[1][2]],
+      [grid[2][0], grid[2][1], null],
+    ];
+    const { options, ansIndex } = buildOptions(answer);
+
+    const debugText =
+`Type: matrix3x3
+RowRule: ${rowRule.name} (${rowRule.id})
+ColRule: ${colRule.name} (${colRule.id})
+✅ 行と列が別でも両方成立する問題のみ採用`;
+
+    return {
+      type:"matrix3x3",
+      size:3,
+      grid:gridWithHole,
+      answer,
+      options,
+      ansIndex,
+      debugText,
+      rowRuleId: rowRule.id,
+      colRuleId: colRule.id,
+    };
+  }
+
+  // ========= Generator B: 2x2 rotate =========
+  function genRelation2x2Rotate(){
+    const A = randCellDense(2,5);
+    const B = rot90(A);
+    const C = randCellDense(2,5);
+    const answer = rot90(C);
+
+    const grid = [[A, B],[C, null]];
+    const { options, ansIndex } = buildOptions(answer);
+    const debugText =
+`Type: relation2x2
+Rule: A→B は 90°回転 / C→? も 90°回転`;
+
+    return {
+      type:"relation2x2",
+      size:2,
+      grid,
+      answer,
+      options,
+      ansIndex,
+      debugText,
+      rowRuleId:"rot2",
+      colRuleId:"rot2",
+    };
+  }
+
+  // ========= Generator C: triomino 4x4 =========
+  function pickValidLHole4x4(){
+    const inBounds = (r,c)=> (r>=0 && r<4 && c>=0 && c<4);
+    const makeL = (r,c,o)=>{
+      const a=[r,c];
+      let b,c2;
+      if (o===0){ b=[r,c+1]; c2=[r+1,c]; }
+      if (o===1){ b=[r,c-1]; c2=[r+1,c]; }
+      if (o===2){ b=[r,c+1]; c2=[r-1,c]; }
+      if (o===3){ b=[r,c-1]; c2=[r-1,c]; }
+      return [a,b,c2];
+    };
+    while(true){
+      const r = rndInt(0,3), c = rndInt(0,3), o = rndInt(0,3);
+      const cells = makeL(r,c,o);
+      if (cells.every(([rr,cc])=>inBounds(rr,cc))) return { cells, orientation:o };
+    }
+  }
+  function lOrientationToEmpty2x2(orientation){
+    if (orientation===0) return [1,1];
+    if (orientation===1) return [1,0];
+    if (orientation===2) return [0,1];
+    return [0,0];
+  }
+
+  function genTriominoPairs4x4(){
+    const hole = pickValidLHole4x4();
+    const holeCells = hole.cells;
+    const empty2x2 = lOrientationToEmpty2x2(hole.orientation);
+
+    const pool = shuffle([...SYMBOLS]);
+    const singles = pool.slice(0,3);
+    const doubles = pool.slice(3,8);
+
+    const fill = [];
+    singles.forEach(s=>fill.push(s));
+    doubles.forEach(d=>{ fill.push(d); fill.push(d); });
+    const fillSyms = shuffle(fill);
+
+    const isHole = (r,c)=> holeCells.some(([rr,cc])=>rr===r && cc===c);
+
+    const grid = Array.from({length:4}, ()=>Array(4).fill(null));
+    let idx = 0;
+    for(let r=0;r<4;r++){
+      for(let c=0;c<4;c++){
+        if (isHole(r,c)) continue;
+        grid[r][c] = fillSyms[idx++];
+      }
+    }
+
+    const answerSymbols = shuffle([...singles]);
+    const answerPlacement = holeCells.map(([r,c],i)=>({ r,c,symbol: answerSymbols[i] }));
+
+    const options = [];
+    options.push({ empty2x2, symbols3: answerSymbols.slice() });
+
+    while(options.length < 6){
+      const cand = shuffle([...SYMBOLS]).slice(0,3);
+      const set = new Set(cand);
+      const allSingles = singles.every(s => set.has(s));
+      if (allSingles) continue;
+
+      const sCount = cand.filter(x=>singles.includes(x)).length;
+      if (sCount === 0) continue;
+
+      const op = { empty2x2, symbols3: cand };
+      const k = triKey(op);
+      if (options.some(x => triKey(x)===k)) continue;
+
+      options.push(op);
+    }
+
+    const shuffled = shuffle(options);
+    const ansIndex = shuffled.findIndex(op => singles.every(s => new Set(op.symbols3).has(s)));
+
+    const debugText =
+`Type: triomino4x4
+Rule: 8種類の記号が最終的に2回ずつ出る（=16マス）
+Singles: ${singles.join(", ")}
+HoleCells: ${holeCells.map(x=>`(${x[0]},${x[1]})`).join(" ")}`;
+
+    return {
+      type:"triomino4x4",
+      size:4,
+      grid,
+      holeCells,
+      answerPlacement,
+      options: shuffled,
+      ansIndex,
+      debugText,
+      rowRuleId:"triomino",
+      colRuleId:"triomino",
+    };
+  }
+
+  // ========= Generator D: count-add (黒マス数) =========
+  function genCountAdd(){
+    const makeByCount = (k) => {
+      const pos = shuffle([...Array(9)].map((_,i)=>i)).slice(0, k);
+      const c = Array(9).fill(0);
+      pos.forEach(i => c[i]=1);
+      return c;
+    };
+
+    const a11k = rndInt(1,3);
+    const a12k = rndInt(1,3);
+    const a21k = rndInt(1,3);
+    const a22k = rndInt(1,3);
+
+    const a11 = makeByCount(a11k);
+    const a12 = makeByCount(a12k);
+    const a21 = makeByCount(a21k);
+    const a22 = makeByCount(a22k);
+
+    const a13 = makeByCount(Math.min(8, a11k + a12k));
+    const a23 = makeByCount(Math.min(8, a21k + a22k));
+
+    const a31 = makeByCount(Math.min(8, a11k + a21k));
+    const a32 = makeByCount(Math.min(8, a12k + a22k));
+
+    const target = Math.min(8, (a11k+a12k) + (a21k+a22k));
+    const a33 = makeByCount(target);
+
+    const grid = [
+      [a11,a12,a13],
+      [a21,a22,a23],
+      [a31,a32,null],
+    ];
+    const answer = a33;
+    const { options, ansIndex } = buildOptions(answer);
+
+    const debugText =
+`Type: countAdd3x3
+Rule: 右は(左+中央)の黒マス数になる（配置はランダムテンプレ）
+Counts: (${a11k}+${a12k}=${countOnes(a13)}), (${a21k}+${a22k}=${countOnes(a23)})`;
+
+    return {
+      type:"countAdd3x3",
+      size:3,
+      grid,
+      answer,
+      options,
+      ansIndex,
+      debugText,
+      rowRuleId:"unique",
+      colRuleId:"unique",
+    };
+  }
+
+  // ========= Generator E: shift-chain =========
+  function genShiftChain(){
+    const base = randCellDense(2,4);
+    const a11 = base;
+    const a12 = shiftRight(a11);
+    const a13 = shiftRight(a12);
+
+    const a21 = shiftDown(a11);
+    const a22 = shiftRight(a21);
+    const a23 = shiftRight(a22);
+
+    const a31 = shiftDown(a21);
+    const a32 = shiftRight(a31);
+    const a33 = shiftRight(a32);
+
+    const grid = [
+      [a11,a12,a13],
+      [a21,a22,a23],
+      [a31,a32,null],
+    ];
+    const answer = a33;
+    const { options, ansIndex } = buildOptions(answer);
+
+    const debugText =
+`Type: shiftChain3x3
+Rule: 右へ1つシフト（列方向）。下は下へ1つシフト（行方向）。`;
+
+    return {
+      type:"shiftChain3x3",
+      size:3,
+      grid,
+      answer,
+      options,
+      ansIndex,
+      debugText,
+      rowRuleId:"rot2",
+      colRuleId:"rot2",
+    };
+  }
+
+  // ========= Generator F: mirror-xor =========
+  function genMirrorXor(){
+    const a11 = randCellDense(2,4);
+    const a12 = randCellDense(2,4);
+    const a21 = randCellDense(2,4);
+    const a22 = randCellDense(2,4);
+
+    const a13 = xor(a11, flipH(a11));
+    const a23 = xor(a21, flipH(a21));
+
+    const a31 = xor(a12, flipH(a12));
+    const a32 = xor(a22, flipH(a22));
+
+    const a33 = xor(a13, a23);
+
+    const grid = [
+      [a11,a12,a13],
+      [a21,a22,a23],
+      [a31,a32,null],
+    ];
+    const answer = a33;
+    const { options, ansIndex } = buildOptions(answer);
+
+    const debugText =
+`Type: mirrorXor3x3
+Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
+
+    return {
+      type:"mirrorXor3x3",
+      size:3,
+      grid,
+      answer,
+      options,
+      ansIndex,
+      debugText,
+      rowRuleId:"xor",
+      colRuleId:"xor",
+    };
+  }
+
+  // ========= Generators =========
+  const GENERATORS = [
+    { w: 60, fn: genMatrixRowColOps },
+    { w: 20, fn: genRelation2x2Rotate },
+    { w: 20, fn: genTriominoPairs4x4 },
+    { w: 10, fn: genCountAdd },
+    { w: 5,  fn: genShiftChain },
+    { w: 5,  fn: genMirrorXor },
+  ];
+  function pickGenerator(){
+    const sum = GENERATORS.reduce((s,x)=>s+x.w,0);
+    let r = Math.random()*sum;
+    for (const g of GENERATORS){
+      r -= g.w;
+      if (r <= 0) return g.fn;
+    }
+    return GENERATORS[0].fn;
+  }
+
+  function applyRuleColor(q){
+    if(!$card || !q) return;
+    [...$card.classList].forEach(c => { if(c.startsWith("rule-")) $card.classList.remove(c); });
+    if (q.type === "relation2x2"){ $card.classList.add("rule-rot2"); return; }
+    if (q.type === "triomino4x4"){ $card.classList.add("rule-unique"); return; }
+    const row = q.rowRuleId || "xor";
+    const col = q.colRuleId || "xor";
+    $card.classList.add(`rule-${row}${col}`);
+  }
+
+  function renderMatrix(q){
+    const n = q.size || 3;
+    $matrix.innerHTML = "";
+    $matrix.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+
+    if (q.type === "triomino4x4"){
+      $matrix.style.gridTemplateColumns = `repeat(4, 1fr)`;
+      const isHole = (r,c)=> q.holeCells.some(([rr,cc])=>rr===r && cc===c);
+      for(let r=0;r<4;r++){
+        for(let c=0;c<4;c++){
+          const cell = document.createElement("div");
+          cell.className = "cell" + (isHole(r,c) ? " q" : "");
+          if (isHole(r,c)){
+            const mark = document.createElement("div");
+            mark.className = "qmark";
+            mark.textContent = "?";
+            cell.appendChild(mark);
+          } else {
+            cell.innerHTML = symbolSVG(q.grid[r][c], 54);
+          }
+          $matrix.appendChild(cell);
+        }
+      }
+      return;
+    }
+
+    const holeIndex = n*n - 1;
+    for (let i=0;i<n*n;i++){
+      const cell = document.createElement("div");
+      cell.className = "cell" + (i===holeIndex ? " q" : "");
+      if (i===holeIndex){
+        const mark = document.createElement("div");
+        mark.className = "qmark";
+        mark.textContent = "?";
+        cell.appendChild(mark);
+      } else {
+        const r = Math.floor(i/n);
+        const c = i % n;
+        cell.innerHTML = cellToSVG(q.grid[r][c], 140);
+      }
+      $matrix.appendChild(cell);
+    }
+  }
+
+  function renderOptions(q){
+    $opts.innerHTML = "";
+    q.options.forEach((optAny, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "opt";
+      btn.type = "button";
+      btn.disabled = true;
+      btn.addEventListener("click", () => onPlayerPick(idx));
+
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.textContent = LABELS[idx];
+
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+
+      if (q.type === "triomino4x4"){
+        thumb.innerHTML = triominoOptionSVG(optAny, 64);
+      } else {
+        thumb.innerHTML = cellToSVG(optAny, 64);
+      }
+
+      btn.appendChild(badge);
+      btn.appendChild(thumb);
+      $opts.appendChild(btn);
+    });
+  }
+
+  function makeBattleQuestion(){
+    // 生成（失敗したらリトライ）
+    let q = null;
+    for (let t=0;t<80;t++){
+      q = pickGenerator()();
+      if (q.type === "triomino4x4"){
+        const uniq = new Set(q.options.map(triKey)).size;
+        if (uniq >= 6 && q.ansIndex >= 0) break;
+      } else {
+        const uniq = new Set(q.options.map(cellKey)).size;
+        const ones = countOnes(q.answer);
+        if (uniq >= 6 && ones >= 1 && ones <= 8) break;
+      }
+    }
+    // 難易度推定（CPU用）
+    q.difficulty = estimateDifficulty(q);
+    return q;
+  }
+
+  function estimateDifficulty(q){
+    // 0.0(易)〜1.0(難) ざっくり
+    if(q.type === "triomino4x4") return 0.70;
+    if(q.type === "matrix3x3"){
+      const isNot = (q.rowRuleId==="not" || q.colRuleId==="not");
+      const isXnor = (q.rowRuleId==="xnor" || q.colRuleId==="xnor");
+      let d = 0.55;
+      if(isNot) d += 0.10;
+      if(isXnor) d += 0.06;
+      return clamp(d, 0.45, 0.80);
+    }
+    if(q.type === "relation2x2") return 0.45;
+    if(q.type === "countAdd3x3") return 0.60;
+    if(q.type === "shiftChain3x3") return 0.50;
+    if(q.type === "mirrorXor3x3") return 0.62;
+    return 0.55;
+  }
+
+  /* =========================
+     CPU（人間っぽい版）
+     - ランク差、難易度、現在スコアで精度/速度が変わる
+     - たまに迷って遅れる
+     - 負けてる時は焦って速いがミス増
+     - 勝ってる時は慎重で遅いがミス減
+     - ギリギリ回答も発生
+     ========================= */
+  function planCpuAnswerHuman({cpuRank, playerRank, difficulty, limitSec, pScore, eScore}){
+    const rand = ()=>Math.random();
+
+    const rankDelta = clamp(cpuRank - playerRank, -3, 3);
+    const scoreDelta = clamp(eScore - pScore, -2, 2); // CPUが勝ってる:+
+
+    // ===== 正答率 =====
+    let acc =
+      0.80
+      - 0.30 * difficulty
+      + 0.05 * rankDelta;
+
+    // 勝ってる→慎重（正答率↑）、負けてる→焦り（正答率↓）
+    acc += 0.03 * scoreDelta; // 勝ってるほど+、負けてるほど-
+
+    // 気分ブレ（集中/油断）
+    acc += (rand()-0.5) * 0.06; // ±0.03
+    acc = clamp(acc, 0.18, 0.96);
+
+    const willCorrect = rand() < acc;
+
+    // ===== 回答時間 =====
+    // ベースは難易度で増える
+    let base = 4.8 + 8.2 * difficulty - 0.85 * rankDelta;
+
+    // 勝ってる→少し遅く、負けてる→少し速く
+    base *= (scoreDelta>0) ? 1.06 : (scoreDelta<0 ? 0.94 : 1.00);
+
+    // fast/normal/slow
+    const r = rand();
+    let mode = "normal";
+    if(r < 0.18) mode = "fast";
+    else if(r > 0.86) mode = "slow";
+
+    let time = base;
+    if(mode==="fast") time *= 0.72;
+    if(mode==="slow") time *= 1.28;
+
+    // 不正解は迷いやすい（遅くなりがち）
+    time *= willCorrect ? 0.92 : 1.10;
+
+    // 迷い演出
+    if(rand() < (0.12 + 0.10*difficulty)) time += 0.7 + rand()*1.6;
+
+    // “ギリギリ回答”演出（難しい・負けてる・たまに）
+    if(rand() < (0.06 + 0.06*difficulty + (scoreDelta<0 ? 0.04 : 0))){
+      time = Math.max(time, limitSec - (0.4 + rand()*1.0)); // 残り0.4〜1.4秒
+      // ギリは正答率も少し落ちる
+      if(rand() < 0.25) {
+        // 25%で直前ミス
+        return { willCorrect:false, timeSec: clamp(time, 0.8, limitSec) };
+      }
+    }
+
+    // ノイズ
+    time += (rand()-0.5) * 1.1;
+
+    time = clamp(time, 0.8, limitSec);
+    return { willCorrect, timeSec: time };
+  }
+
+  function scheduleCpuAnswer(q){
+    const plan = planCpuAnswerHuman({
+      cpuRank, playerRank,
+      difficulty: q.difficulty ?? 0.55,
+      limitSec: LIMIT_SEC,
+      pScore: state.pScore,
+      eScore: state.eScore,
+    });
+
+    let pickIndex;
+    if(plan.willCorrect){
+      pickIndex = q.ansIndex;
+    }else{
+      const pool = [0,1,2,3,4,5].filter(i=>i!==q.ansIndex);
+      pickIndex = pool[Math.floor(Math.random()*pool.length)];
+    }
+
+    state.eTimerId = setTimeout(()=>{
+      state.ePick = pickIndex;
+      state.eTime = plan.timeSec;
+      maybeFinishSoon();
+    }, plan.timeSec * 1000);
+  }
+
+  /* =========================
+     ラウンド開始
+     ========================= */
   function startRound(){
     if(state.matchEnded) return;
+
     resetPicks();
 
-    // 問題生成
-    state.q = makeDummyQuestion(); // ★ ここをガチIQの生成に差し替えOK
-    renderQuestion(state.q);
+    const q = makeBattleQuestion();
+    state.q = q;
 
-    // UI
-    updateHeader();
-    $timerText.textContent = LIMIT_SEC.toFixed(1);
+    applyRuleColor(q);
+    renderMatrix(q);
+    renderOptions(q);
+    $debug.textContent = q.debugText || "";
+
+    setMsg("？の部分に入る図形を選んでください。");
     setPill("回答中");
-    setMsg("同時スタート。早く＆正確に。");
     $startBtn.disabled = true;
     $nextBtn.disabled = true;
 
-    // 開始
     setOptionsEnabled(true);
     startTimer();
 
-    // CPUの回答予定をセット
-    scheduleCpuAnswer();
+    scheduleCpuAnswer(q);
   }
 
-  function nextStep(){
-    // 引き分けの場合：round据え置きで再戦
-    $startBtn.disabled = false;
-    $nextBtn.disabled = true;
-    setPill("待機");
-    setMsg("「開始」を押すと再戦（または次ラウンド）します。");
-  }
-
-  // ========= Buttons =========
+  /* =========================
+     ボタン
+     ========================= */
   $startBtn.addEventListener("click", startRound);
   $nextBtn.addEventListener("click", nextStep);
 
-  // 初期
+  /* =========================
+     初期表示
+     ========================= */
   updateHeader();
-  renderQuestion(makeDummyQuestion());
+  setPill("待機");
+  setMsg("「開始」を押すと同時にスタートします。");
   drawStars($pStars, 0);
   drawStars($eStars, 0);
+  // 1問目のプレビュー（待機中に表示したいなら）
+  // state.q = makeBattleQuestion(); applyRuleColor(state.q); renderMatrix(state.q); renderOptions(state.q); setOptionsEnabled(false);
+
 })();
-</script>
-
-<script>
-/* =========================
-   ② CPU “人間っぽい”速度AI
-   - 難しいほど遅く、ミス率↑
-   - ランク差で精度/速度が変動
-   - たまに「迷い」や「見直し」っぽい遅延
-   ========================= */
-
-function planCpuAnswer({
-  cpuRank=2, playerRank=2,
-  difficulty=0.55,      // 0.0(易)〜1.0(難)
-  limitSec=30,
-  excitementBias=0.0,   // 少しCPU強めにしたい時 +0.02〜+0.06
-}){
-  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
-  const rand = ()=>Math.random();
-
-  // ランク差：CPUが上なら有利、下なら不利
-  const rankDelta = clamp(cpuRank - playerRank, -3, 3);
-
-  // ===== 正答率（人間っぽく“ブレる”） =====
-  // ベース：0.55〜0.90 くらい
-  // 難易度が上がるほど下がる
-  let acc = 0.80
-    - 0.28 * difficulty
-    + 0.05 * rankDelta
-    + excitementBias;
-
-  // 気分ブレ：たまに集中/油断
-  acc += (rand()-0.5) * 0.06; // ±0.03
-
-  acc = clamp(acc, 0.18, 0.96);
-
-  const willCorrect = rand() < acc;
-
-  // ===== 回答時間（速い/普通/遅いの混合） =====
-  // 目標：人間っぽく「たまに速い」「たまに遅い」
-  // difficulty↑で遅く、rankDelta↑で速く
-
-  const base = 5.5
-    + 7.0 * difficulty
-    - 0.9 * rankDelta;    // CPU強いほど速い
-
-  // モード選択：fast / normal / slow
-  const r = rand();
-  let mode = "normal";
-  if(r < 0.18) mode = "fast";
-  else if(r > 0.86) mode = "slow";
-
-  let time = base;
-  if(mode==="fast") time *= 0.70;
-  if(mode==="slow") time *= 1.30;
-
-  // 正解のときは少し速くなりがち、不正解は迷って遅くなりがち
-  time *= willCorrect ? 0.92 : 1.08;
-
-  // 迷い演出：たまに「見直し」遅延
-  if(rand() < (0.12 + 0.08*difficulty)) time += 0.6 + rand()*1.4;
-
-  // たまに“即答ミス”もある（不正解なのに速い）
-  if(!willCorrect && rand() < 0.10) time *= 0.75;
-
-  // ノイズ（ガウスっぽい）
-  time += (rand()-0.5) * 1.2; // ±0.6秒程度
-
-  time = clamp(time, 0.8, limitSec);
-
-  // ===== 選択肢決定 =====
-  const ansIndex = 0; // 実際は呼び出し元で q.ansIndex を見て置換するのでここはダミー
-  let pickIndex = 0;
-
-  // 呼び出し元が q.ansIndex を持ってる前提で “後から”差し込めるよう、
-  // この関数は「正解/不正解」だけ決めて index は外側で上書きしてもOK。
-  // ただ、ここ単体でも動くように6択固定で雑に決める。
-  if(willCorrect){
-    pickIndex = 0; // 外側で上書き推奨
-  }else{
-    pickIndex = 1 + Math.floor(rand()*5); // 外側で上書き推奨
-  }
-
-  return {
-    willCorrect,
-    timeSec: time,
-    pickIndex,
-  };
-}
 </script>
 </body>
 </html>
