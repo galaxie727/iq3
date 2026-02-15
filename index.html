@@ -1,317 +1,647 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ガチIQ</title>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IQ大戦（MVP）</title>
 <style>
+  :root{
+    --bg0:#07090c; --bg1:#0b0f14;
+    --text:#e9eef6; --muted: rgba(233,238,246,0.66);
+    --stroke-weak: rgba(255,255,255,0.14);
+    --stroke-strong: rgba(255,255,255,0.22);
+    --good: rgba(52,243,160,0.42);
+    --bad: rgba(255,77,109,0.42);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(52,243,160,0.10), transparent 60%),
+      radial-gradient(900px 600px at 90% 20%, rgba(52,243,160,0.06), transparent 65%),
+      linear-gradient(180deg, var(--bg0), var(--bg1));
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:18px 14px 26px;}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  h1{margin:0;font-size:18px;letter-spacing:.08em;font-weight:900;}
+  .pill{
+    padding:8px 10px;border:1px solid var(--stroke-strong);
+    background:rgba(255,255,255,0.04);border-radius:12px;
+    font-size:12px;color:var(--muted);white-space:nowrap;height:fit-content;
+  }
+  .card{
+    border:2px solid rgba(52,243,160,0.40);
+    background:rgba(255,255,255,0.045);
+    border-radius:16px;padding:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.38), 0 0 34px rgba(52,243,160,0.18);
+    backdrop-filter: blur(6px);
+  }
 
-body{
-    background:#111;
-    color:white;
-    font-family:sans-serif;
+  /* ===== SCORE ===== */
+  .scoreRow{
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap:10px;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .panel{
+    border:1px solid var(--stroke-strong);
+    background:rgba(0,0,0,0.20);
+    border-radius:14px;
+    padding:10px 12px;
+  }
+  .name{font-weight:900;letter-spacing:.04em}
+  .sub{color:var(--muted);font-size:12px;margin-top:4px}
+  .stars{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+  .star{
+    width:18px;height:18px;border-radius:6px;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08);
+  }
+  .star.on{border-color:rgba(52,243,160,0.55);background:rgba(52,243,160,0.20)}
+  .mid{
     text-align:center;
-}
+    padding:8px 10px;
+    border-radius:14px;
+    border:1px solid var(--stroke-strong);
+    background:rgba(255,255,255,0.03);
+    min-width:120px;
+  }
+  .mid .round{font-weight:900}
+  .mid .timer{margin-top:4px;font-weight:900;letter-spacing:.06em}
 
-#matrix{
+  /* ===== PROBLEM AREA ===== */
+  .problemBox{
+    margin-top:10px;
+    border:1px solid var(--stroke-strong);
+    background:rgba(255,255,255,0.03);
+    border-radius:14px;
+    padding:12px;
+  }
+  .problemTitle{
+    font-weight:900; letter-spacing:.04em;
+    margin-bottom:8px;
+  }
+  .problemArea{
+    display:flex;gap:10px;flex-wrap:wrap;
+    align-items:flex-start;justify-content:space-between;
+  }
+  .dummyGrid{
+    flex: 1 1 360px;
+    border:1px solid var(--stroke-weak);
+    background:#fff;
+    border-radius:14px;
+    min-height:220px;
+    display:flex;align-items:center;justify-content:center;
+    color:#111;font-weight:900;
+  }
+
+  /* ===== OPTIONS ===== */
+  .opts{
     display:grid;
-    grid-template-columns:repeat(3,80px);
-    gap:8px;
-    justify-content:center;
-    margin:20px;
-}
-
-.cell{
-    width:80px;
-    height:80px;
-    background:white;
-    position:relative;
-}
-
-.choiceBox{
-    display:grid;
-    grid-template-columns:repeat(3,80px);
-    gap:8px;
-    justify-content:center;
-    margin-top:20px;
-}
-
-.choice{
-    width:80px;
-    height:80px;
-    background:white;
-    border:3px solid #666;
-    cursor:pointer;
-}
-
-.choice:hover{
-    border-color:#fff;
-}
-
-canvas{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap:10px;
     width:100%;
-    height:100%;
-}
+    max-width:420px;
+    margin:12px auto 0;
+  }
+  .opt{
+    border:1px solid var(--stroke-weak);
+    background:rgba(255,255,255,0.045);
+    border-radius:14px;
+    padding:10px 10px;
+    cursor:pointer;
+    display:flex;gap:10px;align-items:center;justify-content:flex-start;
+    min-height:72px;
+    transition: transform .06s ease, border-color .12s ease, opacity .12s ease;
+  }
+  .opt:active{transform:translateY(1px)}
+  .opt:hover{border-color:rgba(52,243,160,0.35)}
+  .opt[disabled]{opacity:.45;cursor:not-allowed}
+  .badge{
+    width:28px;height:28px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(52,243,160,0.40);
+    color:rgba(52,243,160,0.95);
+    background:rgba(0,0,0,0.18);
+    font-weight:900; flex:0 0 auto;
+  }
+  .thumb{
+    flex:1 1 auto;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.18);
+    background:rgba(0,0,0,0.10);
+    padding:8px 10px;
+    font-weight:900;
+    letter-spacing:.06em;
+    text-align:center;
+  }
 
-button{
-    margin-top:20px;
-    padding:10px 20px;
-}
+  /* ===== MESSAGE ===== */
+  .msg{
+    margin-top:12px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--stroke-strong);
+    background:rgba(255,255,255,0.04);
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.45;
+    min-height:44px;
+    text-align:center;
+  }
+  .msg.ok{border-color:var(--good);background:rgba(52,243,160,0.12);color:#d7fff0;}
+  .msg.ng{border-color:var(--bad); background:rgba(255,77,109,0.12); color:#ffe1e1;}
 
+  /* ===== CONTROLS ===== */
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px;}
+  .btn{
+    border:1px solid rgba(52,243,160,0.30);
+    background:linear-gradient(180deg, rgba(52,243,160,0.20), rgba(52,243,160,0.07));
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:900;
+    letter-spacing:.04em;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  }
+  .btn.secondary{
+    border:1px solid rgba(255,255,255,0.16);
+    background:rgba(255,255,255,0.07);
+    color:rgba(233,238,246,0.88);
+  }
+  .tiny{font-size:12px;color:var(--muted);}
+
+  /* small screens */
+  @media (max-width: 420px){
+    .scoreRow{grid-template-columns: 1fr; }
+    .mid{order:-1}
+    .opts{grid-template-columns: repeat(2, minmax(0, 1fr));}
+  }
 </style>
 </head>
 <body>
+<div class="wrap">
+  <div class="topbar">
+    <div><h1>IQ大戦（MVP）</h1></div>
+    <div class="pill" id="pill">未開始</div>
+  </div>
 
-<h2>？に入る図形を選んでください</h2>
+  <div class="card">
+    <div class="scoreRow">
+      <div class="panel">
+        <div class="name">Player</div>
+        <div class="sub" id="pSub">—</div>
+        <div class="stars" id="pStars"></div>
+      </div>
 
-<div id="matrix"></div>
+      <div class="mid">
+        <div class="round" id="roundText">Round 1</div>
+        <div class="timer" id="timerText">30.0</div>
+        <div class="tiny" id="modeText">同時回答＋早さ判定 / 引き分けは再戦</div>
+      </div>
 
-<div class="choiceBox" id="choices"></div>
+      <div class="panel">
+        <div class="name">CPU</div>
+        <div class="sub" id="eSub">—</div>
+        <div class="stars" id="eStars"></div>
+      </div>
+    </div>
 
-<button onclick="next()">次の問題</button>
+    <div class="problemBox">
+      <div class="problemTitle">？の部分に入る図形を選んでください。</div>
+      <div class="problemArea">
+        <!-- ここを「ガチIQの matrix render」に置き換えOK -->
+        <div class="dummyGrid" id="problemView">DUMMY QUESTION</div>
+      </div>
+
+      <div class="opts" id="opts"></div>
+      <div class="msg" id="msg">「開始」を押すと、同時にスタートします。</div>
+
+      <div class="row">
+        <button class="btn" id="startBtn">開始</button>
+        <button class="btn secondary" id="nextBtn" disabled>次へ</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
+(() => {
+  // ========= Config =========
+  const MAX_ROUNDS = 5;
+  const WIN_NEED = 3;
+  const LIMIT_SEC = 30;
 
-// ===== 設定 =====
+  // ランク(仮)：0〜5 くらいで調整
+  let playerRank = 2;
+  let cpuRank = 2;
 
-const SIZE=3;
-const CELL=80;
+  const LABELS = ["A","B","C","D","E","F"];
 
-let correctIndex=0;
+  // ========= Elements =========
+  const $pill = document.getElementById("pill");
+  const $roundText = document.getElementById("roundText");
+  const $timerText = document.getElementById("timerText");
+  const $modeText = document.getElementById("modeText");
+  const $msg = document.getElementById("msg");
+  const $opts = document.getElementById("opts");
+  const $problem = document.getElementById("problemView");
+  const $startBtn = document.getElementById("startBtn");
+  const $nextBtn = document.getElementById("nextBtn");
 
+  const $pStars = document.getElementById("pStars");
+  const $eStars = document.getElementById("eStars");
+  const $pSub = document.getElementById("pSub");
+  const $eSub = document.getElementById("eSub");
 
-// ===== 図形描画 =====
+  // ========= State =========
+  const state = {
+    matchEnded:false,
+    round:1,          // 表示ラウンド（引き分け再戦でも増えない）
+    played:0,         // 消化した問題数（引き分けでも増やさない方針なら round と同義でOK）
+    pScore:0,
+    eScore:0,
+    running:false,
+    t0:0,
+    timerId:null,
 
-function drawPattern(canvas,pattern){
+    q:null,
+    pPick:null,
+    pTime:null,
+    ePick:null,
+    eTime:null,
+    eTimerId:null,
+  };
 
-    const ctx=canvas.getContext("2d");
+  // ========= Utils =========
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  const now = ()=>performance.now();
 
-    const s=3;
-    const size=CELL/s;
+  function setMsg(text, kind=""){
+    $msg.classList.remove("ok","ng");
+    if(kind) $msg.classList.add(kind);
+    $msg.textContent = text;
+  }
 
-    for(let y=0;y<s;y++){
-        for(let x=0;x<s;x++){
+  function setPill(text){ $pill.textContent = text; }
 
-            ctx.strokeStyle="#000";
-            ctx.strokeRect(x*size,y*size,size,size);
-
-            if(pattern[y][x]==1){
-                ctx.fillStyle="#000";
-                ctx.fillRect(x*size,y*size,size,size);
-            }
-        }
+  function drawStars($el, on){
+    $el.innerHTML = "";
+    for(let i=0;i<WIN_NEED;i++){
+      const d = document.createElement("div");
+      d.className = "star" + (i<on ? " on": "");
+      $el.appendChild(d);
     }
-}
+  }
 
+  function updateHeader(){
+    $roundText.textContent = `Round ${state.round} / ${MAX_ROUNDS}`;
+    drawStars($pStars, state.pScore);
+    drawStars($eStars, state.eScore);
+    $pSub.textContent = `Rank ${playerRank}`;
+    $eSub.textContent = `Rank ${cpuRank}`;
+  }
 
-// ===== パターン生成 =====
+  // ========= Dummy Question =========
+  // ここを「ガチIQの生成 q = pickGenerator()()」に差し替え可能
+  function makeDummyQuestion(){
+    const ansIndex = Math.floor(Math.random()*6);
+    return {
+      type:"dummy",
+      ansIndex,
+      options: LABELS.map(x=>x),
+      // 難易度(0.0〜1.0)をCPUの精度/速度に渡す
+      difficulty: 0.45 + Math.random()*0.25, // 0.45〜0.70
+      prompt: "DUMMY QUESTION"
+    };
+  }
 
+  // ========= CPU AI (②のコアをここで使用) =========
+  // 人間っぽさ：たまに迷う / 速い時と遅い時がある / 難しいと遅く＆ミスる
+  function cpuPlan(q){
+    return planCpuAnswer({
+      cpuRank,
+      playerRank,
+      difficulty: q.difficulty ?? 0.55,
+      limitSec: LIMIT_SEC,
+      // ちょい“満員御礼っぽく強いCPU”にしたい時はここ上げる
+      excitementBias: 0.03,
+    });
+  }
 
-// ランダム
-function randomPattern(){
+  // ========= Render =========
+  function renderOptions(q){
+    $opts.innerHTML = "";
+    q.options.forEach((label, idx)=>{
+      const btn = document.createElement("button");
+      btn.className = "opt";
+      btn.type = "button";
+      btn.disabled = true; // 開始までロック
+      btn.addEventListener("click", ()=>onPlayerPick(idx));
 
-    let p=[];
+      const b = document.createElement("div");
+      b.className = "badge";
+      b.textContent = LABELS[idx];
 
-    for(let y=0;y<3;y++){
+      const t = document.createElement("div");
+      t.className = "thumb";
+      t.textContent = label;
 
-        p[y]=[];
+      btn.appendChild(b);
+      btn.appendChild(t);
+      $opts.appendChild(btn);
+    });
+  }
 
-        for(let x=0;x<3;x++){
+  function setOptionsEnabled(on){
+    [...$opts.querySelectorAll("button.opt")].forEach(b=>b.disabled = !on);
+  }
 
-            p[y][x]=Math.random()>0.5?1:0;
-        }
+  function renderQuestion(q){
+    $problem.textContent = q.prompt || "QUESTION";
+    renderOptions(q);
+  }
+
+  // ========= Round control =========
+  function resetPicks(){
+    state.pPick = null; state.pTime = null;
+    state.ePick = null; state.eTime = null;
+    if(state.eTimerId){ clearTimeout(state.eTimerId); state.eTimerId=null; }
+  }
+
+  function stopTimer(){
+    if(state.timerId){ clearInterval(state.timerId); state.timerId=null; }
+    state.running = false;
+  }
+
+  function startTimer(){
+    stopTimer();
+    state.running = true;
+    state.t0 = now();
+    const tick = ()=>{
+      const t = (now()-state.t0)/1000;
+      const left = clamp(LIMIT_SEC - t, 0, LIMIT_SEC);
+      $timerText.textContent = left.toFixed(1);
+      if(left<=0){
+        onTimeout();
+      }
+    };
+    tick();
+    state.timerId = setInterval(tick, 50);
+  }
+
+  function onTimeout(){
+    if(!state.running) return;
+    stopTimer();
+    setOptionsEnabled(false);
+
+    // プレイヤー未回答なら不正解扱い
+    if(state.pPick===null){
+      state.pPick = -1;
+      state.pTime = LIMIT_SEC;
+    }
+    // CPU未回答なら不正解扱い
+    if(state.ePick===null){
+      state.ePick = -1;
+      state.eTime = LIMIT_SEC;
+    }
+    judgeAndFinish();
+  }
+
+  function onPlayerPick(idx){
+    if(!state.running) return;
+    if(state.pPick!==null) return;
+
+    state.pPick = idx;
+    state.pTime = (now()-state.t0)/1000;
+
+    // 片方が答えた瞬間に終わらせない（同時回答感）
+    // CPUがまだなら、CPUの予定時刻まで待つ or 0.25秒猶予
+    maybeFinishSoon();
+  }
+
+  function maybeFinishSoon(){
+    if(state.pPick===null || state.ePick===null) return;
+
+    // 両者揃った
+    stopTimer();
+    setOptionsEnabled(false);
+    judgeAndFinish();
+  }
+
+  function judgeAndFinish(){
+    const ans = state.q.ansIndex;
+    const pCorrect = (state.pPick === ans);
+    const eCorrect = (state.ePick === ans);
+
+    // 判定優先：正解＞速度＞引き分け再戦
+    if(pCorrect && eCorrect){
+      if(state.pTime < state.eTime){
+        state.pScore++;
+        setMsg(`両者正解。Playerの方が速い（${state.pTime.toFixed(2)}s）✅`, "ok");
+      }else if(state.eTime < state.pTime){
+        state.eScore++;
+        setMsg(`両者正解。CPUの方が速い（${state.eTime.toFixed(2)}s）❌`, "ng");
+      }else{
+        setMsg(`両者正解＆同タイム。引き分け → 再戦`, "");
+        // 引き分け：roundは増やさない
+        $nextBtn.disabled = false;
+        $startBtn.disabled = true;
+        setPill("引き分け");
+        return;
+      }
+    }else if(pCorrect){
+      state.pScore++;
+      setMsg(`Player 正解（${state.pTime.toFixed(2)}s）✅`, "ok");
+    }else if(eCorrect){
+      state.eScore++;
+      setMsg(`CPU 正解（${state.eTime.toFixed(2)}s）❌`, "ng");
+    }else{
+      setMsg(`両者不正解。引き分け → 再戦`, "");
+      $nextBtn.disabled = false;
+      $startBtn.disabled = true;
+      setPill("引き分け");
+      return;
     }
 
-    return p;
-}
+    updateHeader();
 
-
-// XOR
-function xorPattern(a,b){
-
-    let p=[];
-
-    for(let y=0;y<3;y++){
-
-        p[y]=[];
-
-        for(let x=0;x<3;x++){
-
-            p[y][x]=a[y][x]^b[y][x];
-        }
+    // 終了チェック
+    if(state.pScore>=WIN_NEED || state.eScore>=WIN_NEED){
+      state.matchEnded = true;
+      setPill("対戦終了");
+      $startBtn.disabled = true;
+      $nextBtn.disabled = true;
+      const win = state.pScore>state.eScore ? "Player WIN" : "CPU WIN";
+      setMsg(`${win}（${state.pScore}-${state.eScore}）`, state.pScore>state.eScore ? "ok" : "ng");
+      return;
     }
 
-    return p;
-}
-
-
-// 回転
-function rotate(p){
-
-    let r=[];
-
-    for(let y=0;y<3;y++){
-
-        r[y]=[];
-
-        for(let x=0;x<3;x++){
-
-            r[y][x]=p[2-x][y];
-        }
+    // ラウンド進行
+    state.round++;
+    if(state.round>MAX_ROUNDS){
+      // ここまで来るのは「引き分け多発」でroundが進んだ場合だけ（基本は3先取で終了）
+      setPill("対戦終了");
+      $startBtn.disabled = true;
+      $nextBtn.disabled = true;
+      setMsg(`最大問題数に到達（${state.pScore}-${state.eScore}）`, "");
+      return;
     }
 
-    return r;
-}
+    setPill("次へ");
+    $nextBtn.disabled = false;
+    $startBtn.disabled = true;
+  }
 
+  function scheduleCpuAnswer(){
+    const plan = cpuPlan(state.q);
+    state.eTimerId = setTimeout(()=>{
+      // CPU確定
+      state.ePick = plan.pickIndex;
+      state.eTime = plan.timeSec;
 
-// ===== 問題生成 =====
+      // 表示用（デバッグしたいならsubに出す）
+      // $eSub.textContent = `Rank ${cpuRank} / ${plan.pickLabel} / ${plan.timeSec.toFixed(2)}s`;
 
+      maybeFinishSoon();
+    }, plan.timeSec*1000);
+  }
 
-function generateProblem(){
+  function startRound(){
+    if(state.matchEnded) return;
+    resetPicks();
 
-    const type=Math.floor(Math.random()*3);
+    // 問題生成
+    state.q = makeDummyQuestion(); // ★ ここをガチIQの生成に差し替えOK
+    renderQuestion(state.q);
 
-    let grid=[];
-    let answer;
+    // UI
+    updateHeader();
+    $timerText.textContent = LIMIT_SEC.toFixed(1);
+    setPill("回答中");
+    setMsg("同時スタート。早く＆正確に。");
+    $startBtn.disabled = true;
+    $nextBtn.disabled = true;
 
-    if(type==0){
+    // 開始
+    setOptionsEnabled(true);
+    startTimer();
 
-        // XOR
+    // CPUの回答予定をセット
+    scheduleCpuAnswer();
+  }
 
-        grid[0]=randomPattern();
-        grid[1]=randomPattern();
-        grid[2]=xorPattern(grid[0],grid[1]);
+  function nextStep(){
+    // 引き分けの場合：round据え置きで再戦
+    $startBtn.disabled = false;
+    $nextBtn.disabled = true;
+    setPill("待機");
+    setMsg("「開始」を押すと再戦（または次ラウンド）します。");
+  }
 
-        grid[3]=randomPattern();
-        grid[4]=randomPattern();
-        grid[5]=xorPattern(grid[3],grid[4]);
+  // ========= Buttons =========
+  $startBtn.addEventListener("click", startRound);
+  $nextBtn.addEventListener("click", nextStep);
 
-        grid[6]=randomPattern();
-        grid[7]=randomPattern();
-        answer=xorPattern(grid[6],grid[7]);
-
-    }
-
-
-    if(type==1){
-
-        // 回転
-
-        grid[0]=randomPattern();
-        grid[1]=rotate(grid[0]);
-        grid[2]=rotate(grid[1]);
-
-        grid[3]=randomPattern();
-        grid[4]=rotate(grid[3]);
-        grid[5]=rotate(grid[4]);
-
-        grid[6]=randomPattern();
-        grid[7]=rotate(grid[6]);
-        answer=rotate(grid[7]);
-
-    }
-
-
-    if(type==2){
-
-        // コピー＋1追加
-
-        grid[0]=randomPattern();
-        grid[1]=randomPattern();
-        grid[2]=randomPattern();
-
-        grid[3]=randomPattern();
-        grid[4]=randomPattern();
-        grid[5]=randomPattern();
-
-        grid[6]=randomPattern();
-        grid[7]=randomPattern();
-
-        answer=randomPattern();
-
-    }
-
-    return {grid,answer};
-}
-
-
-// ===== 表示 =====
-
-
-function show(){
-
-    const {grid,answer}=generateProblem();
-
-    const matrix=document.getElementById("matrix");
-    matrix.innerHTML="";
-
-    for(let i=0;i<8;i++){
-
-        const c=document.createElement("canvas");
-        c.width=CELL;
-        c.height=CELL;
-        c.className="cell";
-
-        drawPattern(c,grid[i]);
-
-        matrix.appendChild(c);
-    }
-
-    const q=document.createElement("div");
-    q.className="cell";
-    matrix.appendChild(q);
-
-
-    // choices
-
-    const box=document.getElementById("choices");
-    box.innerHTML="";
-
-    correctIndex=Math.floor(Math.random()*6);
-
-    for(let i=0;i<6;i++){
-
-        const c=document.createElement("canvas");
-        c.width=CELL;
-        c.height=CELL;
-        c.className="choice";
-
-        let p;
-
-        if(i==correctIndex)
-            p=answer;
-        else
-            p=randomPattern();
-
-        drawPattern(c,p);
-
-        c.onclick=()=>{
-
-            if(i==correctIndex)
-                alert("正解");
-            else
-                alert("不正解");
-        };
-
-        box.appendChild(c);
-    }
-
-}
-
-
-// ===== 次 =====
-
-function next(){
-    show();
-}
-
-
-// start
-
-show();
-
+  // 初期
+  updateHeader();
+  renderQuestion(makeDummyQuestion());
+  drawStars($pStars, 0);
+  drawStars($eStars, 0);
+})();
 </script>
 
+<script>
+/* =========================
+   ② CPU “人間っぽい”速度AI
+   - 難しいほど遅く、ミス率↑
+   - ランク差で精度/速度が変動
+   - たまに「迷い」や「見直し」っぽい遅延
+   ========================= */
+
+function planCpuAnswer({
+  cpuRank=2, playerRank=2,
+  difficulty=0.55,      // 0.0(易)〜1.0(難)
+  limitSec=30,
+  excitementBias=0.0,   // 少しCPU強めにしたい時 +0.02〜+0.06
+}){
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  const rand = ()=>Math.random();
+
+  // ランク差：CPUが上なら有利、下なら不利
+  const rankDelta = clamp(cpuRank - playerRank, -3, 3);
+
+  // ===== 正答率（人間っぽく“ブレる”） =====
+  // ベース：0.55〜0.90 くらい
+  // 難易度が上がるほど下がる
+  let acc = 0.80
+    - 0.28 * difficulty
+    + 0.05 * rankDelta
+    + excitementBias;
+
+  // 気分ブレ：たまに集中/油断
+  acc += (rand()-0.5) * 0.06; // ±0.03
+
+  acc = clamp(acc, 0.18, 0.96);
+
+  const willCorrect = rand() < acc;
+
+  // ===== 回答時間（速い/普通/遅いの混合） =====
+  // 目標：人間っぽく「たまに速い」「たまに遅い」
+  // difficulty↑で遅く、rankDelta↑で速く
+
+  const base = 5.5
+    + 7.0 * difficulty
+    - 0.9 * rankDelta;    // CPU強いほど速い
+
+  // モード選択：fast / normal / slow
+  const r = rand();
+  let mode = "normal";
+  if(r < 0.18) mode = "fast";
+  else if(r > 0.86) mode = "slow";
+
+  let time = base;
+  if(mode==="fast") time *= 0.70;
+  if(mode==="slow") time *= 1.30;
+
+  // 正解のときは少し速くなりがち、不正解は迷って遅くなりがち
+  time *= willCorrect ? 0.92 : 1.08;
+
+  // 迷い演出：たまに「見直し」遅延
+  if(rand() < (0.12 + 0.08*difficulty)) time += 0.6 + rand()*1.4;
+
+  // たまに“即答ミス”もある（不正解なのに速い）
+  if(!willCorrect && rand() < 0.10) time *= 0.75;
+
+  // ノイズ（ガウスっぽい）
+  time += (rand()-0.5) * 1.2; // ±0.6秒程度
+
+  time = clamp(time, 0.8, limitSec);
+
+  // ===== 選択肢決定 =====
+  const ansIndex = 0; // 実際は呼び出し元で q.ansIndex を見て置換するのでここはダミー
+  let pickIndex = 0;
+
+  // 呼び出し元が q.ansIndex を持ってる前提で “後から”差し込めるよう、
+  // この関数は「正解/不正解」だけ決めて index は外側で上書きしてもOK。
+  // ただ、ここ単体でも動くように6択固定で雑に決める。
+  if(willCorrect){
+    pickIndex = 0; // 外側で上書き推奨
+  }else{
+    pickIndex = 1 + Math.floor(rand()*5); // 外側で上書き推奨
+  }
+
+  return {
+    willCorrect,
+    timeSec: time,
+    pickIndex,
+  };
+}
+</script>
 </body>
 </html>
