@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ガチIQ</title>
+
+<style>
+
+body{
+    background:#111;
+    color:white;
+    font-family:sans-serif;
+    text-align:center;
+}
+
+#matrix{
+    display:grid;
+    grid-template-columns:repeat(3,80px);
+    gap:8px;
+    justify-content:center;
+    margin:20px;
+}
+
+.cell{
+    width:80px;
+    height:80px;
+    background:white;
+    position:relative;
+}
+
+.choiceBox{
+    display:grid;
+    grid-template-columns:repeat(3,80px);
+    gap:8px;
+    justify-content:center;
+    margin-top:20px;
+}
+
+.choice{
+    width:80px;
+    height:80px;
+    background:white;
+    border:3px solid #666;
+    cursor:pointer;
+}
+
+.choice:hover{
+    border-color:#fff;
+}
+
+canvas{
+    width:100%;
+    height:100%;
+}
+
+button{
+    margin-top:20px;
+    padding:10px 20px;
+}
+
+</style>
+</head>
+<body>
+
+<h2>？に入る図形を選んでください</h2>
+
+<div id="matrix"></div>
+
+<div class="choiceBox" id="choices"></div>
+
+<button onclick="next()">次の問題</button>
+
+<script>
+
+// ===== 設定 =====
+
+const SIZE=3;
+const CELL=80;
+
+let correctIndex=0;
+
+
+// ===== 図形描画 =====
+
+function drawPattern(canvas,pattern){
+
+    const ctx=canvas.getContext("2d");
+
+    const s=3;
+    const size=CELL/s;
+
+    for(let y=0;y<s;y++){
+        for(let x=0;x<s;x++){
+
+            ctx.strokeStyle="#000";
+            ctx.strokeRect(x*size,y*size,size,size);
+
+            if(pattern[y][x]==1){
+                ctx.fillStyle="#000";
+                ctx.fillRect(x*size,y*size,size,size);
+            }
+        }
+    }
+}
+
+
+// ===== パターン生成 =====
+
+
+// ランダム
+function randomPattern(){
+
+    let p=[];
+
+    for(let y=0;y<3;y++){
+
+        p[y]=[];
+
+        for(let x=0;x<3;x++){
+
+            p[y][x]=Math.random()>0.5?1:0;
+        }
+    }
+
+    return p;
+}
+
+
+// XOR
+function xorPattern(a,b){
+
+    let p=[];
+
+    for(let y=0;y<3;y++){
+
+        p[y]=[];
+
+        for(let x=0;x<3;x++){
+
+            p[y][x]=a[y][x]^b[y][x];
+        }
+    }
+
+    return p;
+}
+
+
+// 回転
+function rotate(p){
+
+    let r=[];
+
+    for(let y=0;y<3;y++){
+
+        r[y]=[];
+
+        for(let x=0;x<3;x++){
+
+            r[y][x]=p[2-x][y];
+        }
+    }
+
+    return r;
+}
+
+
+// ===== 問題生成 =====
+
+
+function generateProblem(){
+
+    const type=Math.floor(Math.random()*3);
+
+    let grid=[];
+    let answer;
+
+    if(type==0){
+
+        // XOR
+
+        grid[0]=randomPattern();
+        grid[1]=randomPattern();
+        grid[2]=xorPattern(grid[0],grid[1]);
+
+        grid[3]=randomPattern();
+        grid[4]=randomPattern();
+        grid[5]=xorPattern(grid[3],grid[4]);
+
+        grid[6]=randomPattern();
+        grid[7]=randomPattern();
+        answer=xorPattern(grid[6],grid[7]);
+
+    }
+
+
+    if(type==1){
+
+        // 回転
+
+        grid[0]=randomPattern();
+        grid[1]=rotate(grid[0]);
+        grid[2]=rotate(grid[1]);
+
+        grid[3]=randomPattern();
+        grid[4]=rotate(grid[3]);
+        grid[5]=rotate(grid[4]);
+
+        grid[6]=randomPattern();
+        grid[7]=rotate(grid[6]);
+        answer=rotate(grid[7]);
+
+    }
+
+
+    if(type==2){
+
+        // コピー＋1追加
+
+        grid[0]=randomPattern();
+        grid[1]=randomPattern();
+        grid[2]=randomPattern();
+
+        grid[3]=randomPattern();
+        grid[4]=randomPattern();
+        grid[5]=randomPattern();
+
+        grid[6]=randomPattern();
+        grid[7]=randomPattern();
+
+        answer=randomPattern();
+
+    }
+
+    return {grid,answer};
+}
+
+
+// ===== 表示 =====
+
+
+function show(){
+
+    const {grid,answer}=generateProblem();
+
+    const matrix=document.getElementById("matrix");
+    matrix.innerHTML="";
+
+    for(let i=0;i<8;i++){
+
+        const c=document.createElement("canvas");
+        c.width=CELL;
+        c.height=CELL;
+        c.className="cell";
+
+        drawPattern(c,grid[i]);
+
+        matrix.appendChild(c);
+    }
+
+    const q=document.createElement("div");
+    q.className="cell";
+    matrix.appendChild(q);
+
+
+    // choices
+
+    const box=document.getElementById("choices");
+    box.innerHTML="";
+
+    correctIndex=Math.floor(Math.random()*6);
+
+    for(let i=0;i<6;i++){
+
+        const c=document.createElement("canvas");
+        c.width=CELL;
+        c.height=CELL;
+        c.className="choice";
+
+        let p;
+
+        if(i==correctIndex)
+            p=answer;
+        else
+            p=randomPattern();
+
+        drawPattern(c,p);
+
+        c.onclick=()=>{
+
+            if(i==correctIndex)
+                alert("正解");
+            else
+                alert("不正解");
+        };
+
+        box.appendChild(c);
+    }
+
+}
+
+
+// ===== 次 =====
+
+function next(){
+    show();
+}
+
+
+// start
+
+show();
+
+</script>
+
+</body>
+</html>
