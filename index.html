@@ -672,63 +672,112 @@
     judgeAndFinish();
   }
 
-  function onPlayerPick(idx){
-    if(!state.running) return;
-    if(state.pPick!==null) return;
-    state.pPick = idx;
-    state.pTime = (now()-state.t0)/1000;
-    maybeFinishSoon();
+  function finishRoundWithWinner(winner){ // "P" or "E" or "DRAW"
+  if(state.roundEnded) return;
+  state.roundEnded = true;
+
+  stopTimer();
+  setOptionsEnabled(false);
+  if(state.eTimerId){ clearTimeout(state.eTimerId); state.eTimerId=null; } // CPU未回答なら止める
+
+  if(winner === "P"){
+    state.pScore++;
+    setMsg(`Player 正解（${(state.pTime ?? 0).toFixed(2)}s）✅`, "ok");
+    showMidResult("PLAYER +1", "ok");
+  }else if(winner === "E"){
+    state.eScore++;
+    setMsg(`CPU 正解（${(state.eTime ?? 0).toFixed(2)}s）❌`, "ng");
+    showMidResult("CPU +1", "ng");
+  }else{
+    setMsg(`両者不正解。引き分け → 再戦`, "");
+    showMidResult("DRAW", "draw");
+    setPill("引き分け");
+    $nextBtn.disabled = false;
+    $startBtn.disabled = true;
+    setActiveButton("next");
+    updateHeader();
+    return;
   }
 
-  function maybeFinishSoon(){
-    if(state.pPick===null || state.ePick===null) return;
-    stopTimer();
-    setOptionsEnabled(false);
-    judgeAndFinish();
+  updateHeader();
+
+  if(state.pScore>=WIN_NEED || state.eScore>=WIN_NEED){
+    state.matchEnded = true;
+    setPill("対戦終了");
+    $startBtn.disabled = true;
+    $nextBtn.disabled = true;
+    setActiveButton(null);
+
+    const win = state.pScore>state.eScore ? "Player WIN" : "CPU WIN";
+    setMsg(`${win}（${state.pScore}-${state.eScore}）`, state.pScore>state.eScore ? "ok" : "ng");
+    showMidResult(`${win} (${state.pScore}-${state.eScore})`, state.pScore>state.eScore ? "ok" : "ng", 3500);
+    return;
   }
 
-  function judgeAndFinish(){
-    const ans = state.q.ansIndex;
-    const pCorrect = (state.pPick === ans);
-    const eCorrect = (state.ePick === ans);
+  state.round++;
+  if(state.round > MAX_ROUNDS){
+    state.matchEnded = true;
+    setPill("対戦終了");
+    $startBtn.disabled = true;
+    $nextBtn.disabled = true;
+    setActiveButton(null);
+    setMsg(`最大問題数に到達（${state.pScore}-${state.eScore}）`, "");
+    showMidResult(`END (${state.pScore}-${state.eScore})`, "draw", 3000);
+    return;
+  }
 
-    if(pCorrect && eCorrect){
-      if(state.pTime < state.eTime){
-        state.pScore++;
-        setMsg(`両者正解。Playerの方が速い（${state.pTime.toFixed(2)}s）✅`, "ok");
-        showMidResult("PLAYER +1", "ok");
-      }else if(state.eTime < state.pTime){
-        state.eScore++;
-        setMsg(`両者正解。CPUの方が速い（${state.eTime.toFixed(2)}s）❌`, "ng");
-        showMidResult("CPU +1", "ng");
-      }else{
-        setMsg(`両者正解＆同タイム。引き分け → 再戦`, "");
-        showMidResult("DRAW", "draw");
-        setPill("引き分け");
-        $nextBtn.disabled = false;
-        $startBtn.disabled = true;
-        setActiveButton("next");
-        updateHeader();
-        return;
-      }
-    }else if(pCorrect){
-      state.pScore++;
-      setMsg(`Player 正解（${state.pTime.toFixed(2)}s）✅`, "ok");
-      showMidResult("PLAYER +1", "ok");
-    }else if(eCorrect){
-      state.eScore++;
-      setMsg(`CPU 正解（${state.eTime.toFixed(2)}s）❌`, "ng");
-      showMidResult("CPU +1", "ng");
-    }else{
-      setMsg(`両者不正解。引き分け → 再戦`, "");
-      showMidResult("DRAW", "draw");
-      setPill("引き分け");
-      $nextBtn.disabled = false;
-      $startBtn.disabled = true;
-      setActiveButton("next");
-      updateHeader();
-      return;
-    }
+  setPill("次へ");
+  $nextBtn.disabled = false;
+  $startBtn.disabled = true;
+  setActiveButton("next");
+}
+
+function evaluateAfterPick(lastPicker){ // "P" or "E"
+  if(state.roundEnded) return;
+  const ans = state.q.ansIndex;
+
+  const pAnswered = state.pPick !== null;
+  const eAnswered = state.ePick !== null;
+
+  const pCorrect = pAnswered && (state.pPick === ans);
+  const eCorrect = eAnswered && (state.ePick === ans);
+
+  // ★新ルール：先に答えた方が正解なら、その瞬間に勝ち（相手の回答を待たない）
+  if(lastPicker === "P" && pCorrect){
+    finishRoundWithWinner("P");
+    return;
+  }
+  if(lastPicker === "E" && eCorrect){
+    finishRoundWithWinner("E");
+    return;
+  }
+
+  // 先に答えた側が不正解なら、相手が答える/タイムアウトを待つ
+  // ただし両者が答えて両方不正解なら即DRAWで良い
+  if(pAnswered && eAnswered){
+    if(pCorrect && !eCorrect) return finishRoundWithWinner("P"); // 念のため
+    if(!pCorrect && eCorrect) return finishRoundWithWinner("E"); // 念のため
+    return finishRoundWithWinner("DRAW");
+  }
+}
+
+function onPlayerPick(idx){
+  if(!state.running || state.roundEnded) return;
+  if(state.pPick!==null) return;
+  state.pPick = idx;
+  state.pTime = (now()-state.t0)/1000;
+  evaluateAfterPick("P");
+}
+
+// 旧maybeFinishSoon/judgeAndFinishは不要になるけど、呼ばれてる箇所があるので最小化して残す
+function maybeFinishSoon(){
+  // CPU側タイマーから呼ばれても evaluateAfterPick で判定する
+  // ※どちらが最後に答えたかは、CPU側からは "E" として呼ぶ
+  evaluateAfterPick("E");
+}
+function judgeAndFinish(){
+  // 使わない（互換用）
+}
 
     updateHeader();
 
