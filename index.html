@@ -1428,6 +1428,9 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
     resetPicks();
 
     const q = makeBattleQuestion();
+    if(!q.theme){
+  q.theme = THEMES.logic_sq;
+}
     state.q = q;
 
     applyRuleColor(q);
