@@ -1270,6 +1270,7 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
         const r = Math.floor(i/n);
         const c = i % n;
         // ★ 変更点：テーマを渡す（①②）
+        const safeTheme = q.theme || THEMES.logic_sq;
         cell.innerHTML = cellToSVG(q.grid[r][c], 140, q.theme);
       }
       $matrix.appendChild(cell);
@@ -1296,6 +1297,7 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
         thumb.innerHTML = triominoOptionSVG(optAny, 64);
       } else {
         // ★ 変更点：テーマを渡す（①②）
+        const safeTheme = q.theme || THEMES.logic_sq;
         thumb.innerHTML = cellToSVG(optAny, 64, q.theme);
       }
 
