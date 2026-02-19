@@ -41,7 +41,7 @@
     height: fit-content;
   }
 
-  /* ===== ルール色分け：card枠（濃く） ===== */
+  /* ===== ルール色分け：card枠 ===== */
   .card{
     --ruleGlow: rgba(52,243,160,0.22);
     --ruleStroke: rgba(52,243,160,0.40);
@@ -55,44 +55,36 @@
       0 0 34px var(--ruleGlow);
     backdrop-filter: blur(6px);
   }
-
-  /* XOR寄り = グリーン */
   .rule-xorxor, .rule-xoror, .rule-orxor, .rule-xorand, .rule-andxor, .rule-xorxnor, .rule-xnorxor{
     --ruleGlow: rgba(52,243,160,0.22);
     --ruleStroke: rgba(52,243,160,0.46);
   }
-  /* OR/AND混在 = ブルー */
   .rule-orand, .rule-andor, .rule-oror{
     --ruleGlow: rgba(120,170,255,0.22);
     --ruleStroke: rgba(120,170,255,0.48);
   }
-  /* AND絡み多め = パープル */
   .rule-andand, .rule-andxnor, .rule-xnorand, .rule-xnorxnor{
     --ruleGlow: rgba(200,120,255,0.22);
     --ruleStroke: rgba(200,120,255,0.50);
   }
-  /* NOT絡み = レッド寄り */
   .rule-notnot, .rule-notxor, .rule-xornot, .rule-notor, .rule-ornot, .rule-notand, .rule-andnot, .rule-notxnor, .rule-xnornot{
     --ruleGlow: rgba(255,90,120,0.20);
     --ruleStroke: rgba(255,90,120,0.46);
   }
-  /* 2x2 回転 = オレンジ */
   .rule-rot2{
     --ruleGlow: rgba(255,175,90,0.22);
     --ruleStroke: rgba(255,175,90,0.54);
   }
-  /* “ユニーク/ペア系” = イエロー（triominoも流用） */
   .rule-unique{
     --ruleGlow: rgba(255,225,90,0.20);
     --ruleStroke: rgba(255,225,90,0.54);
   }
 
-  /* ===== SCORE ===== */
-  .scoreRow{
+  /* ===== VS レイアウト ===== */
+  .vsWrap{
     display:grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
     gap:10px;
-    align-items:center;
     margin-bottom: 10px;
   }
   .panel{
@@ -101,35 +93,104 @@
     border-radius: 14px;
     padding: 10px 12px;
   }
-  .name{ font-weight: 900; letter-spacing:.04em; }
-  .sub{ color: var(--muted); font-size: 12px; margin-top: 4px; }
-  .stars{ margin-top: 8px; display:flex; gap:6px; flex-wrap:wrap; }
+  .panelRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .who{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width: 0;
+  }
+  .avatar{
+    width: 42px; height: 42px;
+    border-radius: 14px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.18);
+    background:#fff;
+    flex: 0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .whoText{ min-width:0; }
+  .name{ font-weight: 900; letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sub{ color: var(--muted); font-size: 12px; margin-top: 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rightMeta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex: 0 0 auto;
+  }
+  .stars{ display:flex; gap:6px; flex-wrap:wrap; }
   .star{
     width: 18px; height: 18px; border-radius: 6px;
     border:1px solid rgba(255,255,255,0.25);
     background: rgba(255,255,255,0.08);
   }
-  .star.on{
-    border-color: rgba(52,243,160,0.55);
-    background: rgba(52,243,160,0.20);
-  }
-  .mid{
-    text-align:center;
+  .star.on{ border-color: rgba(52,243,160,0.55); background: rgba(52,243,160,0.20); }
+
+  .miniBtn{
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.07);
+    color: rgba(233,238,246,0.92);
     padding: 8px 10px;
+    border-radius: 12px;
+    cursor:pointer;
+    font-weight: 900;
+    letter-spacing:.04em;
+    transition: transform .06s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
+    font-size: 12px;
+  }
+  .miniBtn:active{ transform: translateY(1px); }
+
+  .midbar{
+    text-align:center;
+    padding: 10px 12px;
     border-radius: 14px;
     border:1px solid var(--stroke-strong);
     background: rgba(255,255,255,0.03);
-    min-width: 150px;
   }
-  .mid .round{ font-weight: 900; }
-  .mid .timer{ margin-top: 4px; font-weight: 900; letter-spacing:.06em; }
+  .midbarTop{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .midbarTop .round{ font-weight: 900; }
+  .midbarTop .timer{ font-weight: 900; letter-spacing:.06em; }
+  .tiny{ font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .vsLine{
+    margin-top: 8px;
+    font-weight: 900;
+    letter-spacing: .18em;
+    color: rgba(233,238,246,0.78);
+  }
+
+  .midResult{
+    margin-top: 8px;
+    min-height: 18px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    font-size: 13px;
+    color: rgba(233,238,246,0.92);
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity .14s ease, transform .14s ease;
+  }
+  .midResult.show{ opacity: 1; transform: translateY(0); }
+  .midResult.ok{ color:#d7fff0; text-shadow: 0 0 14px rgba(52,243,160,0.35); }
+  .midResult.ng{ color:#ffe1e1; text-shadow: 0 0 14px rgba(255,77,109,0.28); }
+  .midResult.draw{ color: rgba(233,238,246,0.86); text-shadow: 0 0 12px rgba(255,255,255,0.10); }
 
   /* ===== 問題 ===== */
   .matrix{
     display:grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 12px;
   }
   .cell{
     border:1px solid var(--stroke-weak);
@@ -162,16 +223,8 @@
     min-height: 42px;
     text-align:center;
   }
-  .msg.ok{
-    border-color: var(--good);
-    background: rgba(52,243,160,0.12);
-    color: #d7fff0;
-  }
-  .msg.ng{
-    border-color: var(--bad);
-    background: rgba(255,77,109,0.12);
-    color: #ffe1e1;
-  }
+  .msg.ok{ border-color: var(--good); background: rgba(52,243,160,0.12); color: #d7fff0; }
+  .msg.ng{ border-color: var(--bad);  background: rgba(255,77,109,0.12); color: #ffe1e1; }
 
   /* ===== 選択肢 ===== */
   .opts{
@@ -226,22 +279,29 @@
     margin-top: 12px;
   }
   .btn{
-    border: 1px solid rgba(52,243,160,0.30);
-    background: linear-gradient(180deg, rgba(52,243,160,0.20), rgba(52,243,160,0.07));
-    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.07);
+    color: rgba(233,238,246,0.92);
     padding: 10px 12px;
     border-radius: 12px;
     cursor:pointer;
     font-weight: 900;
     letter-spacing:.04em;
     box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    transition: transform .06s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
-  .btn.secondary{
-    border: 1px solid rgba(255,255,255,0.16);
-    background: rgba(255,255,255,0.07);
-    color: rgba(233,238,246,0.88);
+  .btn:active{ transform: translateY(1px); }
+  .btn[disabled]{ opacity:.45; cursor:not-allowed; }
+
+  .btn.active{
+    border: 1px solid rgba(52,243,160,0.35);
+    background: linear-gradient(180deg, rgba(52,243,160,0.20), rgba(52,243,160,0.07));
+    color: var(--text);
+    box-shadow:
+      0 8px 20px rgba(0,0,0,0.35),
+      0 0 0 1px rgba(52,243,160,0.20) inset,
+      0 0 26px rgba(52,243,160,0.18);
   }
-  .tiny{ font-size: 12px; color: var(--muted); }
 
   details{
     margin-top: 12px;
@@ -253,13 +313,73 @@
   details > summary{ cursor:pointer; font-weight: 900; color: rgba(233,238,246,0.82); }
   .small{ color: var(--muted); font-size: 12px; line-height: 1.55; margin-top: 8px; white-space: pre-wrap; }
 
-  /* SVG枠が沈まない（黒マス側のみ） */
   .matrix svg rect[stroke="#000"]{ stroke: rgba(255,255,255,0.35) !important; }
 
+  /* ===== モーダル（キャラ選択） ===== */
+  .modalBg{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.58);
+    display:none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 9999;
+  }
+  .modalBg.show{ display:flex; }
+  .modal{
+    width: min(560px, 100%);
+    border-radius: 16px;
+    border:1px solid rgba(255,255,255,0.18);
+    background: rgba(12,16,22,0.94);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    padding: 14px;
+  }
+  .modalHead{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap:10px;
+    margin-bottom: 10px;
+  }
+  .modalTitle{ font-weight: 900; letter-spacing:.06em; }
+  .gridChars{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap:10px;
+  }
+  .charBtn{
+    border:1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 10px;
+    cursor:pointer;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    transition: transform .06s ease, border-color .12s ease;
+  }
+  .charBtn:active{ transform: translateY(1px); }
+  .charBtn:hover{ border-color: rgba(52,243,160,0.30); }
+  .charName{
+    font-weight: 900;
+    font-size: 13px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .charIcon{
+    width: 36px; height: 36px;
+    border-radius: 14px;
+    overflow:hidden;
+    background:#fff;
+    border:1px solid rgba(255,255,255,0.18);
+    flex: 0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+
   @media (max-width: 420px){
-    .scoreRow{ grid-template-columns: 1fr; }
-    .mid{ order:-1; }
     .opts{ grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 360px; }
+    .gridChars{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   }
 </style>
 </head>
@@ -272,23 +392,49 @@
   </div>
 
   <div class="card" id="card">
-    <div class="scoreRow">
+    <div class="vsWrap">
+      <!-- 上：CPU -->
       <div class="panel">
-        <div class="name">Player</div>
-        <div class="sub" id="pSub">Rank 2</div>
-        <div class="stars" id="pStars"></div>
+        <div class="panelRow">
+          <div class="who">
+            <div class="avatar" id="cpuAvatar"></div>
+            <div class="whoText">
+              <div class="name" id="cpuName">CPU</div>
+              <div class="sub" id="cpuSub">Rank 2 / ???</div>
+            </div>
+          </div>
+          <div class="rightMeta">
+            <div class="stars" id="cpuStars"></div>
+          </div>
+        </div>
       </div>
 
-      <div class="mid">
-        <div class="round" id="roundText">Round 1 / 5</div>
-        <div class="timer" id="timerText">30.0</div>
+      <!-- 中央：VS + Round/Timer + Result -->
+      <div class="midbar">
+        <div class="midbarTop">
+          <div class="round" id="roundText">Round 1 / 5</div>
+          <div class="timer" id="timerText">60.0</div>
+        </div>
         <div class="tiny">同時回答＋早さ判定 / 引き分けは再戦 / 3先取</div>
+        <div class="vsLine">VS</div>
+        <div class="midResult" id="midResult" aria-live="polite"></div>
       </div>
 
+      <!-- 下：Player -->
       <div class="panel">
-        <div class="name">CPU</div>
-        <div class="sub" id="eSub">Rank 2</div>
-        <div class="stars" id="eStars"></div>
+        <div class="panelRow">
+          <div class="who">
+            <div class="avatar" id="playerAvatar"></div>
+            <div class="whoText">
+              <div class="name" id="playerName">Player</div>
+              <div class="sub" id="playerSub">Rank 2 / ???</div>
+            </div>
+          </div>
+          <div class="rightMeta">
+            <button class="miniBtn" id="pickCharBtn">アイコン変更</button>
+            <div class="stars" id="playerStars"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -299,7 +445,7 @@
 
     <div class="row">
       <button class="btn" id="startBtn">開始</button>
-      <button class="btn secondary" id="nextBtn" disabled>次へ</button>
+      <button class="btn" id="nextBtn" disabled>次へ</button>
     </div>
 
     <details>
@@ -309,20 +455,66 @@
   </div>
 </div>
 
+<!-- モーダル -->
+<div class="modalBg" id="modalBg" role="dialog" aria-modal="true" aria-label="キャラ選択">
+  <div class="modal">
+    <div class="modalHead">
+      <div class="modalTitle">デカブサキャラから選ぶ</div>
+      <button class="miniBtn" id="closeModalBtn">閉じる</button>
+    </div>
+    <div class="gridChars" id="charGrid"></div>
+  </div>
+</div>
+
 <script>
 (() => {
   /* =========================
      対戦ルール
      ========================= */
-  const MAX_ROUNDS = 5;   // 表示上のラウンド上限
-  const WIN_NEED  = 3;    // 3先取
-  const LIMIT_SEC = 30;   // 制限時間（秒）
+  const MAX_ROUNDS = 5;
+  const WIN_NEED  = 3;
+  const LIMIT_SEC = 60; // 1分
 
-  // ランク（仮）: 0〜5くらい想定
   let playerRank = 2;
   let cpuRank    = 2;
 
   const LABELS = ["A","B","C","D","E","F"];
+
+  /* =========================
+     キャラ（仮）
+     ========================= */
+  const CHARACTERS = [
+    { id:"dekabusa",   name:"デカブサ" },
+    { id:"ani",       name:"デカブサ兄" },
+    { id:"otouto",    name:"デカブサ弟" },
+    { id:"kabao",     name:"カバオ" },
+    { id:"hachibou",  name:"ハチボウ" },
+    { id:"yumeo",     name:"ユメオ" },
+    { id:"juuzou",    name:"十三（ジュウゾウ）" },
+    { id:"torasan",   name:"とらさん" },
+    { id:"lionmaru",  name:"ライオン丸" },
+    { id:"namaken",   name:"ナマケン" },
+    { id:"hanao",     name:"ハナオ" },
+    { id:"bird",      name:"バード" },
+    { id:"kanemon",   name:"カンえもん" },
+    { id:"taiga",     name:"タイガ" },
+    { id:"gori",      name:"ゴリさん" },
+  ];
+
+  // 今は「アイコン＝白地に文字」の簡易版（画像差し替えも後で可能）
+  function avatarSVG(label, size=42){
+    const s = size;
+    const text = (label || "?").slice(0,3);
+    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">
+      <rect x="0" y="0" width="${s}" height="${s}" rx="${Math.round(s*0.33)}" ry="${Math.round(s*0.33)}" fill="#fff"/>
+      <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
+        font-family="-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"
+        font-size="${Math.round(s*0.28)}" font-weight="900" fill="#111">${escapeXML(text)}</text>
+    </svg>`;
+  }
+  function escapeXML(str){
+    return String(str).replace(/[<>&"']/g, s => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[s]));
+  }
 
   /* =========================
      DOM
@@ -336,21 +528,34 @@
   const $pill = document.getElementById("statusPill");
   const $roundText = document.getElementById("roundText");
   const $timerText = document.getElementById("timerText");
+  const $midResult = document.getElementById("midResult");
 
   const $startBtn = document.getElementById("startBtn");
   const $nextBtn  = document.getElementById("nextBtn");
 
-  const $pStars = document.getElementById("pStars");
-  const $eStars = document.getElementById("eStars");
-  const $pSub = document.getElementById("pSub");
-  const $eSub = document.getElementById("eSub");
+  const $playerStars = document.getElementById("playerStars");
+  const $cpuStars = document.getElementById("cpuStars");
+
+  const $playerSub = document.getElementById("playerSub");
+  const $cpuSub = document.getElementById("cpuSub");
+
+  const $playerAvatar = document.getElementById("playerAvatar");
+  const $cpuAvatar = document.getElementById("cpuAvatar");
+  const $playerName = document.getElementById("playerName");
+  const $cpuName = document.getElementById("cpuName");
+
+  // modal
+  const $modalBg = document.getElementById("modalBg");
+  const $charGrid = document.getElementById("charGrid");
+  const $pickCharBtn = document.getElementById("pickCharBtn");
+  const $closeModalBtn = document.getElementById("closeModalBtn");
 
   /* =========================
      状態
      ========================= */
   const state = {
     matchEnded:false,
-    round:1,     // 引き分け再戦のときは増やさない
+    round:1,
     pScore:0,
     eScore:0,
 
@@ -364,6 +569,11 @@
     ePick:null,
     eTime:null,
     eTimerId:null,
+
+    midResultTid:null,
+
+    playerChar: CHARACTERS[0],
+    cpuChar: CHARACTERS[1],
   };
 
   const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
@@ -377,6 +587,26 @@
     $msg.textContent = text;
   }
 
+  function clearMidResult(){
+    if(state.midResultTid){ clearTimeout(state.midResultTid); state.midResultTid=null; }
+    $midResult.classList.remove("show","ok","ng","draw");
+    $midResult.textContent = "";
+  }
+  function showMidResult(text, kind="draw", ms=2200){
+    clearMidResult();
+    $midResult.textContent = text;
+    $midResult.classList.add("show");
+    if(kind) $midResult.classList.add(kind);
+    state.midResultTid = setTimeout(()=>clearMidResult(), ms);
+  }
+
+  function setActiveButton(which){
+    $startBtn.classList.remove("active");
+    $nextBtn.classList.remove("active");
+    if(which==="start") $startBtn.classList.add("active");
+    if(which==="next")  $nextBtn.classList.add("active");
+  }
+
   function drawStars($el, on){
     $el.innerHTML = "";
     for(let i=0;i<WIN_NEED;i++){
@@ -388,10 +618,15 @@
 
   function updateHeader(){
     $roundText.textContent = `Round ${state.round} / ${MAX_ROUNDS}`;
-    $pSub.textContent = `Rank ${playerRank}`;
-    $eSub.textContent = `Rank ${cpuRank}`;
-    drawStars($pStars, state.pScore);
-    drawStars($eStars, state.eScore);
+
+    $playerSub.textContent = `Rank ${playerRank} / ${state.playerChar.name}`;
+    $cpuSub.textContent    = `Rank ${cpuRank} / ${state.cpuChar.name}`;
+
+    $playerAvatar.innerHTML = avatarSVG(state.playerChar.name, 42);
+    $cpuAvatar.innerHTML    = avatarSVG(state.cpuChar.name, 42);
+
+    drawStars($playerStars, state.pScore);
+    drawStars($cpuStars, state.eScore);
   }
 
   function setOptionsEnabled(on){
@@ -429,14 +664,8 @@
     stopTimer();
     setOptionsEnabled(false);
 
-    if(state.pPick===null){
-      state.pPick = -1;
-      state.pTime = LIMIT_SEC;
-    }
-    if(state.ePick===null){
-      state.ePick = -1;
-      state.eTime = LIMIT_SEC;
-    }
+    if(state.pPick===null){ state.pPick = -1; state.pTime = LIMIT_SEC; }
+    if(state.ePick===null){ state.ePick = -1; state.eTime = LIMIT_SEC; }
     judgeAndFinish();
   }
 
@@ -460,81 +689,129 @@
     const pCorrect = (state.pPick === ans);
     const eCorrect = (state.ePick === ans);
 
-    // 両正解→早い方
     if(pCorrect && eCorrect){
       if(state.pTime < state.eTime){
         state.pScore++;
         setMsg(`両者正解。Playerの方が速い（${state.pTime.toFixed(2)}s）✅`, "ok");
+        showMidResult("PLAYER +1", "ok");
       }else if(state.eTime < state.pTime){
         state.eScore++;
         setMsg(`両者正解。CPUの方が速い（${state.eTime.toFixed(2)}s）❌`, "ng");
+        showMidResult("CPU +1", "ng");
       }else{
         setMsg(`両者正解＆同タイム。引き分け → 再戦`, "");
+        showMidResult("DRAW", "draw");
         setPill("引き分け");
         $nextBtn.disabled = false;
         $startBtn.disabled = true;
+        setActiveButton("next");
         updateHeader();
         return;
       }
-    }
-    // 片正解
-    else if(pCorrect){
+    }else if(pCorrect){
       state.pScore++;
       setMsg(`Player 正解（${state.pTime.toFixed(2)}s）✅`, "ok");
+      showMidResult("PLAYER +1", "ok");
     }else if(eCorrect){
       state.eScore++;
       setMsg(`CPU 正解（${state.eTime.toFixed(2)}s）❌`, "ng");
-    }
-    // 両不正解→再戦
-    else{
+      showMidResult("CPU +1", "ng");
+    }else{
       setMsg(`両者不正解。引き分け → 再戦`, "");
+      showMidResult("DRAW", "draw");
       setPill("引き分け");
       $nextBtn.disabled = false;
       $startBtn.disabled = true;
+      setActiveButton("next");
       updateHeader();
       return;
     }
 
     updateHeader();
 
-    // 勝敗
     if(state.pScore>=WIN_NEED || state.eScore>=WIN_NEED){
       state.matchEnded = true;
       setPill("対戦終了");
       $startBtn.disabled = true;
       $nextBtn.disabled = true;
+      setActiveButton(null);
+
       const win = state.pScore>state.eScore ? "Player WIN" : "CPU WIN";
       setMsg(`${win}（${state.pScore}-${state.eScore}）`, state.pScore>state.eScore ? "ok" : "ng");
+      showMidResult(`${win} (${state.pScore}-${state.eScore})`, state.pScore>state.eScore ? "ok" : "ng", 3500);
       return;
     }
 
-    // 次ラウンドへ
     state.round++;
     if(state.round > MAX_ROUNDS){
       state.matchEnded = true;
       setPill("対戦終了");
       $startBtn.disabled = true;
       $nextBtn.disabled = true;
+      setActiveButton(null);
       setMsg(`最大問題数に到達（${state.pScore}-${state.eScore}）`, "");
+      showMidResult(`END (${state.pScore}-${state.eScore})`, "draw", 3000);
       return;
     }
 
     setPill("次へ");
     $nextBtn.disabled = false;
     $startBtn.disabled = true;
+    setActiveButton("next");
   }
 
   function nextStep(){
     if(state.matchEnded) return;
+    clearMidResult();
     setPill("待機");
     setMsg("「開始」を押すとスタートします。");
     $startBtn.disabled = false;
     $nextBtn.disabled = true;
+    setActiveButton("start");
+    $timerText.textContent = LIMIT_SEC.toFixed(1);
   }
 
   /* =========================
+     キャラ選択（モーダル）
+     ========================= */
+  function openModal(){
+    $modalBg.classList.add("show");
+  }
+  function closeModal(){
+    $modalBg.classList.remove("show");
+  }
+  function buildCharGrid(){
+    $charGrid.innerHTML = "";
+    CHARACTERS.forEach(ch => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "charBtn";
+      b.addEventListener("click", ()=>{
+        state.playerChar = ch;
+        updateHeader();
+        closeModal();
+      });
+
+      const icon = document.createElement("div");
+      icon.className = "charIcon";
+      icon.innerHTML = avatarSVG(ch.name, 36);
+
+      const name = document.createElement("div");
+      name.className = "charName";
+      name.textContent = ch.name;
+
+      b.appendChild(icon);
+      b.appendChild(name);
+      $charGrid.appendChild(b);
+    });
+  }
+
+  $pickCharBtn.addEventListener("click", openModal);
+  $closeModalBtn.addEventListener("click", closeModal);
+  $modalBg.addEventListener("click", (e)=>{ if(e.target === $modalBg) closeModal(); });
+
+  /* =========================
      ここから：問題生成・描画（ガチIQ資産）
-     + 見た目テーマ（①②）入り完全版
      ========================= */
 
   // ========= Utils =========
@@ -551,46 +828,39 @@
   const countOnes = (c) => c.reduce((s,v)=>s+(v?1:0),0);
   const cellKey = (c) => c.join("");
 
-  // ========= Theme (見た目バリエーション) =========
-  // 安全版：黒背景(invert)は “入れない” ← ここが「それも含めた」ポイント
-  // 必要なら後で invert も復活できる
+  // ========= Theme =========
   const THEMES = {
-    logic_sq:   { id:"logic_sq",   shape:"square", fill:"solid",   bg:"white" },  // 今の雰囲気
-    logic_out:  { id:"logic_out",  shape:"square", fill:"outline", bg:"white" },  // 白抜き
-    count_hat:  { id:"count_hat",  shape:"square", fill:"hatch",   bg:"white" },  // 集計向き
-    motion_dot: { id:"motion_dot", shape:"circle", fill:"solid",   bg:"white" },  // 移動向き
-    tri_fill:   { id:"tri_fill",   shape:"tri",    fill:"solid",   bg:"white" },  // 三角
-    // invert_sq:  { id:"invert_sq",  shape:"square", fill:"solid",   bg:"black" }, // ←安全版ではOFF
+    logic_sq:   { id:"logic_sq",   shape:"square", fill:"solid",   bg:"white" },
+    logic_out:  { id:"logic_out",  shape:"square", fill:"outline", bg:"white" },
+    count_hat:  { id:"count_hat",  shape:"square", fill:"hatch",   bg:"white" },
+    motion_dot: { id:"motion_dot", shape:"circle", fill:"solid",   bg:"white" },
+    tri_fill:   { id:"tri_fill",   shape:"tri",    fill:"solid",   bg:"white" },
   };
-
-  // タイプ別：同じ問題でも “見た目が毎回同じ” を防ぐ（②）
   const POOL_BY_TYPE = {
     matrix3x3:     ["logic_sq","logic_out","tri_fill"],
     relation2x2:   ["logic_sq","logic_out"],
-    triomino4x4:   ["logic_sq"], // 記号問題は別枠で十分
+    triomino4x4:   ["logic_sq"],
     countAdd3x3:   ["count_hat","logic_out","logic_sq"],
     shiftChain3x3: ["motion_dot","logic_out"],
     mirrorXor3x3:  ["logic_out","logic_sq","tri_fill"],
   };
-
   function pickThemeForType(type){
     const poolKeys = POOL_BY_TYPE[type] || ["logic_sq"];
     const pool = poolKeys.map(k => THEMES[k]).filter(Boolean);
     return pool[Math.floor(Math.random()*pool.length)];
   }
 
-  // triomino option key
+  // triomino key
   const triKey = (op) => {
     const e = op.empty2x2.join(",");
     const s = op.symbols3.slice().sort().join("|");
     return `${e}::${s}`;
   };
 
-  // ========= Cell ops (3×3 flat 9) =========
+  // ========= Cell ops =========
   function rot90(c){ return [c[6],c[3],c[0], c[7],c[4],c[1], c[8],c[5],c[2]]; }
   function rot180(c){ return rot90(rot90(c)); }
   function flipH(c){ return [c[2],c[1],c[0], c[5],c[4],c[3], c[8],c[7],c[6]]; }
-  function flipV(c){ return [c[6],c[7],c[8], c[3],c[4],c[5], c[0],c[1],c[2]]; }
   function shiftRight(c){ return [c[2],c[0],c[1], c[5],c[3],c[4], c[8],c[6],c[7]]; }
   function shiftDown(c){ return [c[6],c[7],c[8], c[0],c[1],c[2], c[3],c[4],c[5]]; }
 
@@ -614,24 +884,17 @@
     idx.forEach(i => a[i] = a[i] ? 0 : 1);
     return a;
   }
-
-  // ほどよい密度のランダム
   function randCellDense(minOnes=2, maxOnes=4){
-    let guard=0;
-    while (guard++ < 400){
-      const k = rndInt(minOnes, maxOnes);
-      const pos = shuffle([...Array(9)].map((_,i)=>i)).slice(0,k);
-      const c = Array(9).fill(0);
-      pos.forEach(i => c[i]=1);
-      return c;
-    }
-    return Array(9).fill(0);
+    const k = rndInt(minOnes, maxOnes);
+    const pos = shuffle([...Array(9)].map((_,i)=>i)).slice(0,k);
+    const c = Array(9).fill(0);
+    pos.forEach(i => c[i]=1);
+    return c;
   }
 
-  // ========= SVG render (テーマ対応) =========
+  // ========= SVG render =========
   function cellToSVG(c, size=140, theme=THEMES.logic_sq){
     const s = size/3;
-
     const bgFill = (theme.bg==="black") ? "#000" : "#fff";
     const fgFill = (theme.bg==="black") ? "#fff" : "#000";
 
@@ -659,17 +922,6 @@
       if (fillMode==="outline"){
         return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
       }
-      if (fillMode==="hatch"){
-        const id = `hc${Math.random().toString(16).slice(2)}`;
-        return `
-          <defs>
-            <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
-            </pattern>
-          </defs>
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})"/>
-        `;
-      }
       return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fgFill}"/>`;
     };
 
@@ -680,17 +932,6 @@
       const x3 = x + p,     y3 = y + h - p;
       if (fillMode==="outline"){
         return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
-      }
-      if (fillMode==="hatch"){
-        const id = `ht${Math.random().toString(16).slice(2)}`;
-        return `
-          <defs>
-            <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
-            </pattern>
-          </defs>
-          <path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="url(#${id})"/>
-        `;
       }
       return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="${fgFill}"/>`;
     };
@@ -729,7 +970,6 @@
     add(rot90(answer));
     add(rot180(answer));
     add(flipH(answer));
-    add(flipV(answer));
     add(shiftRight(answer));
     add(shiftDown(answer));
     add(xor(answer, rot90(answer)));
@@ -760,24 +1000,14 @@
     return { options, ansIndex };
   }
 
-  // ========= Symbol SVG (triomino) =========
-  const SYMBOLS = [
-    "circle",
-    "square",
-    "triangle",
-    "dot",
-    "bullseye",
-    "circle_cross",
-    "diamond",
-    "circle_slash",
-  ];
+  // triomino
+  const SYMBOLS = ["circle","square","triangle","dot","bullseye","circle_cross","diamond","circle_slash"];
 
   function symbolSVG(sym, size=44){
     const s = size;
     const cx = s/2, cy = s/2;
     const stroke = "#111";
     const sw = 3.2;
-
     const bg = `<rect width="${s}" height="${s}" rx="${Math.max(8, s*0.18)}" ry="${Math.max(8, s*0.18)}" fill="#fff"/>`;
 
     const dot = `<circle cx="${cx}" cy="${cy}" r="${s*0.13}" fill="${stroke}" />`;
@@ -810,10 +1040,7 @@
     else if (sym==="diamond") shape = diamond;
     else if (sym==="circle_slash") shape = circle_slash;
 
-    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">
-      ${bg}
-      ${shape}
-    </svg>`;
+    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">${bg}${shape}</svg>`;
   }
 
   function triominoOptionSVG(opt, size=64){
@@ -824,7 +1051,6 @@
 
     let idx = 0;
     let parts = `<rect width="${s}" height="${s}" rx="12" ry="12" fill="#fff" stroke="rgba(0,0,0,0.18)" stroke-width="2"/>`;
-
     for(let r=0;r<2;r++){
       for(let c=0;c<2;c++){
         const x = pad + c*cell;
@@ -839,7 +1065,7 @@
     return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">${parts}</svg>`;
   }
 
-  // ========= Rule registry =========
+  // rules
   const RULES = [
     { id:"xor",  name:"右 = 左 XOR 中央",  f:(L,M)=>xor(L,M) },
     { id:"or",   name:"右 = 左 OR 中央",   f:(L,M)=>or(L,M)  },
@@ -865,7 +1091,6 @@
     { row:"not",  col:"not"  },
   ];
 
-  // ========= Generator A: 3x3 row/col ops =========
   function genMatrixRowColOps(){
     const pickSet = RULESETS[Math.floor(Math.random()*RULESETS.length)];
     const rowRule = getRule(pickSet.row);
@@ -888,11 +1113,7 @@
       if (!deepEq(fromRow, fromCol)) return null;
 
       const a33 = fromRow;
-      return [
-        [a11, a12, a13],
-        [a21, a22, a23],
-        [a31, a32, a33],
-      ];
+      return [[a11,a12,a13],[a21,a22,a23],[a31,a32,a33]];
     }
 
     let grid = null;
@@ -921,11 +1142,7 @@
     }
 
     const answer = grid[2][2];
-    const gridWithHole = [
-      [grid[0][0], grid[0][1], grid[0][2]],
-      [grid[1][0], grid[1][1], grid[1][2]],
-      [grid[2][0], grid[2][1], null],
-    ];
+    const gridWithHole = [[grid[0][0],grid[0][1],grid[0][2]],[grid[1][0],grid[1][1],grid[1][2]],[grid[2][0],grid[2][1],null]];
     const { options, ansIndex } = buildOptions(answer);
 
     const debugText =
@@ -934,20 +1151,9 @@ RowRule: ${rowRule.name} (${rowRule.id})
 ColRule: ${colRule.name} (${colRule.id})
 ✅ 行と列が別でも両方成立する問題のみ採用`;
 
-    return {
-      type:"matrix3x3",
-      size:3,
-      grid:gridWithHole,
-      answer,
-      options,
-      ansIndex,
-      debugText,
-      rowRuleId: rowRule.id,
-      colRuleId: colRule.id,
-    };
+    return { type:"matrix3x3", size:3, grid:gridWithHole, answer, options, ansIndex, debugText, rowRuleId:rowRule.id, colRuleId:colRule.id };
   }
 
-  // ========= Generator B: 2x2 rotate =========
   function genRelation2x2Rotate(){
     const A = randCellDense(2,5);
     const B = rot90(A);
@@ -956,24 +1162,11 @@ ColRule: ${colRule.name} (${colRule.id})
 
     const grid = [[A, B],[C, null]];
     const { options, ansIndex } = buildOptions(answer);
-    const debugText =
-`Type: relation2x2
-Rule: A→B は 90°回転 / C→? も 90°回転`;
+    const debugText = `Type: relation2x2\nRule: A→B は 90°回転 / C→? も 90°回転`;
 
-    return {
-      type:"relation2x2",
-      size:2,
-      grid,
-      answer,
-      options,
-      ansIndex,
-      debugText,
-      rowRuleId:"rot2",
-      colRuleId:"rot2",
-    };
+    return { type:"relation2x2", size:2, grid, answer, options, ansIndex, debugText, rowRuleId:"rot2", colRuleId:"rot2" };
   }
 
-  // ========= Generator C: triomino 4x4 =========
   function pickValidLHole4x4(){
     const inBounds = (r,c)=> (r>=0 && r<4 && c>=0 && c<4);
     const makeL = (r,c,o)=>{
@@ -997,7 +1190,6 @@ Rule: A→B は 90°回転 / C→? も 90°回転`;
     if (orientation===2) return [0,1];
     return [0,0];
   }
-
   function genTriominoPairs4x4(){
     const hole = pickValidLHole4x4();
     const holeCells = hole.cells;
@@ -1024,24 +1216,20 @@ Rule: A→B は 90°回転 / C→? も 90°回転`;
     }
 
     const answerSymbols = shuffle([...singles]);
-    const answerPlacement = holeCells.map(([r,c],i)=>({ r,c,symbol: answerSymbols[i] }));
 
     const options = [];
     options.push({ empty2x2, symbols3: answerSymbols.slice() });
-
     while(options.length < 6){
       const cand = shuffle([...SYMBOLS]).slice(0,3);
       const set = new Set(cand);
       const allSingles = singles.every(s => set.has(s));
       if (allSingles) continue;
-
       const sCount = cand.filter(x=>singles.includes(x)).length;
       if (sCount === 0) continue;
 
       const op = { empty2x2, symbols3: cand };
       const k = triKey(op);
       if (options.some(x => triKey(x)===k)) continue;
-
       options.push(op);
     }
 
@@ -1054,21 +1242,9 @@ Rule: 8種類の記号が最終的に2回ずつ出る（=16マス）
 Singles: ${singles.join(", ")}
 HoleCells: ${holeCells.map(x=>`(${x[0]},${x[1]})`).join(" ")}`;
 
-    return {
-      type:"triomino4x4",
-      size:4,
-      grid,
-      holeCells,
-      answerPlacement,
-      options: shuffled,
-      ansIndex,
-      debugText,
-      rowRuleId:"triomino",
-      colRuleId:"triomino",
-    };
+    return { type:"triomino4x4", size:4, grid, holeCells, options:shuffled, ansIndex, debugText, rowRuleId:"triomino", colRuleId:"triomino" };
   }
 
-  // ========= Generator D: count-add (黒マス数) =========
   function genCountAdd(){
     const makeByCount = (k) => {
       const pos = shuffle([...Array(9)].map((_,i)=>i)).slice(0, k);
@@ -1076,93 +1252,43 @@ HoleCells: ${holeCells.map(x=>`(${x[0]},${x[1]})`).join(" ")}`;
       pos.forEach(i => c[i]=1);
       return c;
     };
-
-    const a11k = rndInt(1,3);
-    const a12k = rndInt(1,3);
-    const a21k = rndInt(1,3);
-    const a22k = rndInt(1,3);
-
-    const a11 = makeByCount(a11k);
-    const a12 = makeByCount(a12k);
-    const a21 = makeByCount(a21k);
-    const a22 = makeByCount(a22k);
-
+    const a11k = rndInt(1,3), a12k = rndInt(1,3), a21k = rndInt(1,3), a22k = rndInt(1,3);
+    const a11 = makeByCount(a11k), a12 = makeByCount(a12k), a21 = makeByCount(a21k), a22 = makeByCount(a22k);
     const a13 = makeByCount(Math.min(8, a11k + a12k));
     const a23 = makeByCount(Math.min(8, a21k + a22k));
-
     const a31 = makeByCount(Math.min(8, a11k + a21k));
     const a32 = makeByCount(Math.min(8, a12k + a22k));
-
     const target = Math.min(8, (a11k+a12k) + (a21k+a22k));
     const a33 = makeByCount(target);
 
-    const grid = [
-      [a11,a12,a13],
-      [a21,a22,a23],
-      [a31,a32,null],
-    ];
+    const grid = [[a11,a12,a13],[a21,a22,a23],[a31,a32,null]];
     const answer = a33;
     const { options, ansIndex } = buildOptions(answer);
+    const debugText = `Type: countAdd3x3\nRule: 右は(左+中央)の黒マス数になる（配置はランダムテンプレ）`;
 
-    const debugText =
-`Type: countAdd3x3
-Rule: 右は(左+中央)の黒マス数になる（配置はランダムテンプレ）
-Counts: (${a11k}+${a12k}=${countOnes(a13)}), (${a21k}+${a22k}=${countOnes(a23)})`;
-
-    return {
-      type:"countAdd3x3",
-      size:3,
-      grid,
-      answer,
-      options,
-      ansIndex,
-      debugText,
-      rowRuleId:"unique",
-      colRuleId:"unique",
-    };
+    return { type:"countAdd3x3", size:3, grid, answer, options, ansIndex, debugText, rowRuleId:"unique", colRuleId:"unique" };
   }
 
-  // ========= Generator E: shift-chain =========
   function genShiftChain(){
     const base = randCellDense(2,4);
     const a11 = base;
     const a12 = shiftRight(a11);
     const a13 = shiftRight(a12);
-
     const a21 = shiftDown(a11);
     const a22 = shiftRight(a21);
     const a23 = shiftRight(a22);
-
     const a31 = shiftDown(a21);
     const a32 = shiftRight(a31);
     const a33 = shiftRight(a32);
 
-    const grid = [
-      [a11,a12,a13],
-      [a21,a22,a23],
-      [a31,a32,null],
-    ];
+    const grid = [[a11,a12,a13],[a21,a22,a23],[a31,a32,null]];
     const answer = a33;
     const { options, ansIndex } = buildOptions(answer);
+    const debugText = `Type: shiftChain3x3\nRule: 右へ1つシフト（列方向）。下は下へ1つシフト（行方向）。`;
 
-    const debugText =
-`Type: shiftChain3x3
-Rule: 右へ1つシフト（列方向）。下は下へ1つシフト（行方向）。`;
-
-    return {
-      type:"shiftChain3x3",
-      size:3,
-      grid,
-      answer,
-      options,
-      ansIndex,
-      debugText,
-      rowRuleId:"rot2",
-      colRuleId:"rot2",
-    };
+    return { type:"shiftChain3x3", size:3, grid, answer, options, ansIndex, debugText, rowRuleId:"rot2", colRuleId:"rot2" };
   }
 
-  // ========= Generator F: mirror-xor =========
   function genMirrorXor(){
     const a11 = randCellDense(2,4);
     const a12 = randCellDense(2,4);
@@ -1171,38 +1297,18 @@ Rule: 右へ1つシフト（列方向）。下は下へ1つシフト（行方向
 
     const a13 = xor(a11, flipH(a11));
     const a23 = xor(a21, flipH(a21));
-
     const a31 = xor(a12, flipH(a12));
     const a32 = xor(a22, flipH(a22));
-
     const a33 = xor(a13, a23);
 
-    const grid = [
-      [a11,a12,a13],
-      [a21,a22,a23],
-      [a31,a32,null],
-    ];
+    const grid = [[a11,a12,a13],[a21,a22,a23],[a31,a32,null]];
     const answer = a33;
     const { options, ansIndex } = buildOptions(answer);
+    const debugText = `Type: mirrorXor3x3\nRule: 右 = 左 XOR 左の左右反転（対称合成）`;
 
-    const debugText =
-`Type: mirrorXor3x3
-Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
-
-    return {
-      type:"mirrorXor3x3",
-      size:3,
-      grid,
-      answer,
-      options,
-      ansIndex,
-      debugText,
-      rowRuleId:"xor",
-      colRuleId:"xor",
-    };
+    return { type:"mirrorXor3x3", size:3, grid, answer, options, ansIndex, debugText, rowRuleId:"xor", colRuleId:"xor" };
   }
 
-  // ========= Generators =========
   const GENERATORS = [
     { w: 60, fn: genMatrixRowColOps },
     { w: 20, fn: genRelation2x2Rotate },
@@ -1269,9 +1375,8 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
       } else {
         const r = Math.floor(i/n);
         const c = i % n;
-        // ★ 変更点：テーマを渡す（①②）
         const safeTheme = q.theme || THEMES.logic_sq;
-        cell.innerHTML = cellToSVG(q.grid[r][c], 140, q.theme);
+        cell.innerHTML = cellToSVG(q.grid[r][c], 140, safeTheme);
       }
       $matrix.appendChild(cell);
     }
@@ -1296,9 +1401,8 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
       if (q.type === "triomino4x4"){
         thumb.innerHTML = triominoOptionSVG(optAny, 64);
       } else {
-        // ★ 変更点：テーマを渡す（①②）
         const safeTheme = q.theme || THEMES.logic_sq;
-        thumb.innerHTML = cellToSVG(optAny, 64, q.theme);
+        thumb.innerHTML = cellToSVG(optAny, 64, safeTheme);
       }
 
       btn.appendChild(badge);
@@ -1307,38 +1411,8 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
     });
   }
 
-  function makeBattleQuestion(){
-    // 生成（失敗したらリトライ）
-    let q = null;
-    for (let t=0;t<80;t++){
-      q = pickGenerator()();
-      if (q.type === "triomino4x4"){
-        const uniq = new Set(q.options.map(triKey)).size;
-        if (uniq >= 6 && q.ansIndex >= 0) break;
-          } else {
-      const uniq = new Set(q.options.map(cellKey)).size;
-
-      // ★追加：盤面(穴以外)が「空(0個)」になってないかチェック
-      const visibleCells = q.grid.flat().filter(Boolean); // null(穴)除外
-      const okBoard = visibleCells.every(c => {
-        const n = countOnes(c);
-        return n >= 1 && n <= 8;
-      });
-
-      const onesAns = countOnes(q.answer);
-      if (uniq >= 6 && okBoard && onesAns >= 1 && onesAns <= 8) break;
-    }
-    }
-
-    // ★ 追加（①②）：この問題に“見た目テーマ”を固定で持たせる
-    q.theme = pickThemeForType(q.type);
-
-    // 難易度推定（CPU用）
-    q.difficulty = estimateDifficulty(q);
-    return q;
-  }
-
   function estimateDifficulty(q){
+    const dClamp = (x)=>clamp(x, 0.45, 0.80);
     if(q.type === "triomino4x4") return 0.70;
     if(q.type === "matrix3x3"){
       const isNot = (q.rowRuleId==="not" || q.colRuleId==="not");
@@ -1346,7 +1420,7 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
       let d = 0.55;
       if(isNot) d += 0.10;
       if(isXnor) d += 0.06;
-      return clamp(d, 0.45, 0.80);
+      return dClamp(d);
     }
     if(q.type === "relation2x2") return 0.45;
     if(q.type === "countAdd3x3") return 0.60;
@@ -1355,20 +1429,38 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
     return 0.55;
   }
 
+  function makeBattleQuestion(){
+    let q = null;
+    for (let t=0;t<80;t++){
+      q = pickGenerator()();
+      if (q.type === "triomino4x4"){
+        const uniq = new Set(q.options.map(triKey)).size;
+        if (uniq >= 6 && q.ansIndex >= 0) break;
+      } else {
+        const uniq = new Set(q.options.map(cellKey)).size;
+        const visibleCells = q.grid.flat().filter(Boolean);
+        const okBoard = visibleCells.every(c => {
+          const n = countOnes(c);
+          return n >= 1 && n <= 8;
+        });
+        const onesAns = countOnes(q.answer);
+        if (uniq >= 6 && okBoard && onesAns >= 1 && onesAns <= 8) break;
+      }
+    }
+    q.theme = pickThemeForType(q.type);
+    q.difficulty = estimateDifficulty(q);
+    return q;
+  }
+
   /* =========================
-     CPU（人間っぽい版）
+     CPU（人間っぽい）
      ========================= */
   function planCpuAnswerHuman({cpuRank, playerRank, difficulty, limitSec, pScore, eScore}){
     const rand = ()=>Math.random();
-
     const rankDelta = clamp(cpuRank - playerRank, -3, 3);
     const scoreDelta = clamp(eScore - pScore, -2, 2);
 
-    let acc =
-      0.80
-      - 0.30 * difficulty
-      + 0.05 * rankDelta;
-
+    let acc = 0.80 - 0.30 * difficulty + 0.05 * rankDelta;
     acc += 0.03 * scoreDelta;
     acc += (rand()-0.5) * 0.06;
     acc = clamp(acc, 0.18, 0.96);
@@ -1388,14 +1480,11 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
     if(mode==="slow") time *= 1.28;
 
     time *= willCorrect ? 0.92 : 1.10;
-
     if(rand() < (0.12 + 0.10*difficulty)) time += 0.7 + rand()*1.6;
 
     if(rand() < (0.06 + 0.06*difficulty + (scoreDelta<0 ? 0.04 : 0))){
       time = Math.max(time, limitSec - (0.4 + rand()*1.0));
-      if(rand() < 0.25) {
-        return { willCorrect:false, timeSec: clamp(time, 0.8, limitSec) };
-      }
+      if(rand() < 0.25) return { willCorrect:false, timeSec: clamp(time, 0.8, limitSec) };
     }
 
     time += (rand()-0.5) * 1.1;
@@ -1430,15 +1519,24 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
   /* =========================
      ラウンド開始
      ========================= */
+  function randomCpuChar(){
+    const pool = CHARACTERS.filter(c => c.id !== state.playerChar.id);
+    state.cpuChar = pool[Math.floor(Math.random()*pool.length)];
+  }
+
   function startRound(){
     if(state.matchEnded) return;
 
+    clearMidResult();
     resetPicks();
 
+    // 「開始」押した時点で CPUキャラを一度決める（最初の開始だけ）
+    if(state.round===1 && state.pScore===0 && state.eScore===0 && !state.running){
+      randomCpuChar();
+      updateHeader();
+    }
+
     const q = makeBattleQuestion();
-    if(!q.theme){
-  q.theme = THEMES.logic_sq;
-}
     state.q = q;
 
     applyRuleColor(q);
@@ -1450,10 +1548,10 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
     setPill("回答中");
     $startBtn.disabled = true;
     $nextBtn.disabled = true;
+    setActiveButton(null); // 回答中は光らせない
 
     setOptionsEnabled(true);
     startTimer();
-
     scheduleCpuAnswer(q);
   }
 
@@ -1466,11 +1564,15 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
   /* =========================
      初期表示
      ========================= */
+  buildCharGrid();
+  state.playerChar = CHARACTERS[0];
+  state.cpuChar = CHARACTERS[1];
+
   updateHeader();
   setPill("待機");
   setMsg("「開始」を押すと同時にスタートします。");
-  drawStars($pStars, 0);
-  drawStars($eStars, 0);
+  $timerText.textContent = LIMIT_SEC.toFixed(1);
+  setActiveButton("start"); // 最初は開始だけ光る
 
 })();
 </script>
