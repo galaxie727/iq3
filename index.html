@@ -562,6 +562,8 @@
     running:false,
     t0:0,
     timerId:null,
+    
+    roundEnded:false,
 
     q:null,
     pPick:null,
@@ -654,10 +656,11 @@
   }
 
   function resetPicks(){
-    state.pPick = null; state.pTime = null;
-    state.ePick = null; state.eTime = null;
-    if(state.eTimerId){ clearTimeout(state.eTimerId); state.eTimerId=null; }
-  }
+  state.pPick = null; state.pTime = null;
+  state.ePick = null; state.eTime = null;
+  state.roundEnded = false; // ←追加
+  if(state.eTimerId){ clearTimeout(state.eTimerId); state.eTimerId=null; }
+}
 
   function onTimeout(){
     if(!state.running) return;
@@ -830,17 +833,16 @@
 
   // ========= Theme =========
   const THEMES = {
-    logic_sq:   { id:"logic_sq",   shape:"square", fill:"solid",   bg:"white" },
-    logic_out:  { id:"logic_out",  shape:"square", fill:"outline", bg:"white" },
-    count_hat:  { id:"count_hat",  shape:"square", fill:"hatch",   bg:"white" },
-    motion_dot: { id:"motion_dot", shape:"circle", fill:"solid",   bg:"white" },
-    tri_fill:   { id:"tri_fill",   shape:"tri",    fill:"solid",   bg:"white" },
-  };
+  logic_sq:   { id:"logic_sq",   shape:"square", fill:"solid",   bg:"white" },
+  logic_out:  { id:"logic_out",  shape:"square", fill:"outline", bg:"white" },
+  motion_dot: { id:"motion_dot", shape:"circle", fill:"solid",   bg:"white" },
+  tri_fill:   { id:"tri_fill",   shape:"tri",    fill:"solid",   bg:"white" },
+};
   const POOL_BY_TYPE = {
     matrix3x3:     ["logic_sq","logic_out","tri_fill"],
     relation2x2:   ["logic_sq","logic_out"],
     triomino4x4:   ["logic_sq"],
-    countAdd3x3:   ["count_hat","logic_out","logic_sq"],
+    countAdd3x3:   ["logic_out","logic_sq"],
     shiftChain3x3: ["motion_dot","logic_out"],
     mirrorXor3x3:  ["logic_out","logic_sq","tri_fill"],
   };
