@@ -776,11 +776,31 @@ function maybeFinishSoon(){
   evaluateAfterPick("E");
 }
 
-    $nextBtn.disabled = false;
-    $startBtn.disabled = true;
-    setActiveButton("next");
+function judgeAndFinish(){
+  if(state.roundEnded) return;
+
+  const ans = state.q.ansIndex;
+
+  const pAnswered = state.pPick !== null;
+  const eAnswered = state.ePick !== null;
+
+  const pCorrect = pAnswered && (state.pPick === ans);
+  const eCorrect = eAnswered && (state.ePick === ans);
+
+  // 両方正解 → 早いほう勝ち
+  if(pCorrect && eCorrect){
+    if((state.pTime ?? LIMIT_SEC) <= (state.eTime ?? LIMIT_SEC)) return finishRoundWithWinner("P");
+    return finishRoundWithWinner("E");
   }
 
+  // 片方だけ正解
+  if(pCorrect) return finishRoundWithWinner("P");
+  if(eCorrect) return finishRoundWithWinner("E");
+
+  // 両方不正解
+  return finishRoundWithWinner("DRAW");
+}
+  
   function nextStep(){
     if(state.matchEnded) return;
     clearMidResult();
