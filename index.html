@@ -775,38 +775,7 @@ function maybeFinishSoon(){
   // ※どちらが最後に答えたかは、CPU側からは "E" として呼ぶ
   evaluateAfterPick("E");
 }
-function judgeAndFinish(){
-  // 使わない（互換用）
-}
 
-    updateHeader();
-
-    if(state.pScore>=WIN_NEED || state.eScore>=WIN_NEED){
-      state.matchEnded = true;
-      setPill("対戦終了");
-      $startBtn.disabled = true;
-      $nextBtn.disabled = true;
-      setActiveButton(null);
-
-      const win = state.pScore>state.eScore ? "Player WIN" : "CPU WIN";
-      setMsg(`${win}（${state.pScore}-${state.eScore}）`, state.pScore>state.eScore ? "ok" : "ng");
-      showMidResult(`${win} (${state.pScore}-${state.eScore})`, state.pScore>state.eScore ? "ok" : "ng", 3500);
-      return;
-    }
-
-    state.round++;
-    if(state.round > MAX_ROUNDS){
-      state.matchEnded = true;
-      setPill("対戦終了");
-      $startBtn.disabled = true;
-      $nextBtn.disabled = true;
-      setActiveButton(null);
-      setMsg(`最大問題数に到達（${state.pScore}-${state.eScore}）`, "");
-      showMidResult(`END (${state.pScore}-${state.eScore})`, "draw", 3000);
-      return;
-    }
-
-    setPill("次へ");
     $nextBtn.disabled = false;
     $startBtn.disabled = true;
     setActiveButton("next");
