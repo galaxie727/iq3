@@ -511,7 +511,6 @@
     // 次ラウンドへ
     state.round++;
     if(state.round > MAX_ROUNDS){
-      // ここに来るのは引き分け多発で上限超えた時の保険
       state.matchEnded = true;
       setPill("対戦終了");
       $startBtn.disabled = true;
@@ -534,7 +533,8 @@
   }
 
   /* =========================
-     ここから：あなたの「今までのやつ」(生成・描画)
+     ここから：問題生成・描画（ガチIQ資産）
+     + 見た目テーマ（①②）入り完全版
      ========================= */
 
   // ========= Utils =========
@@ -550,32 +550,35 @@
   };
   const countOnes = (c) => c.reduce((s,v)=>s+(v?1:0),0);
   const cellKey = (c) => c.join("");
-  
-  // ========= Theme =========
-const THEMES = {
-  logic_sq:   { id:"logic_sq",   shape:"square", fill:"solid",   bg:"white" },  // 今の雰囲気
-  logic_out:  { id:"logic_out",  shape:"square", fill:"outline", bg:"white" },
-  count_hat:  { id:"count_hat",  shape:"square", fill:"hatch",   bg:"white" },  // 数・集計向き
-  motion_dot: { id:"motion_dot", shape:"circle", fill:"solid",   bg:"white" },  // シフト向き
-  tri_fill:   { id:"tri_fill",   shape:"tri",    fill:"solid",   bg:"white" },
-  invert_sq:  { id:"invert_sq",  shape:"square", fill:"solid",   bg:"black" },  // たまに映える
-};
 
-// 同じタイプでも“見た目が毎回同じ”を防ぐ（B）
-const POOL_BY_TYPE = {
-  matrix3x3:     ["logic_sq","logic_out","tri_fill","invert_sq"],
-  relation2x2:   ["logic_sq","logic_out","invert_sq"],
-  triomino4x4:   ["logic_sq"], // 記号問題は別枠で十分
-  countAdd3x3:   ["count_hat","logic_out","invert_sq"],
-  shiftChain3x3: ["motion_dot","logic_out","invert_sq"],
-  mirrorXor3x3:  ["logic_out","logic_sq","invert_sq"],
-};
+  // ========= Theme (見た目バリエーション) =========
+  // 安全版：黒背景(invert)は “入れない” ← ここが「それも含めた」ポイント
+  // 必要なら後で invert も復活できる
+  const THEMES = {
+    logic_sq:   { id:"logic_sq",   shape:"square", fill:"solid",   bg:"white" },  // 今の雰囲気
+    logic_out:  { id:"logic_out",  shape:"square", fill:"outline", bg:"white" },  // 白抜き
+    count_hat:  { id:"count_hat",  shape:"square", fill:"hatch",   bg:"white" },  // 集計向き
+    motion_dot: { id:"motion_dot", shape:"circle", fill:"solid",   bg:"white" },  // 移動向き
+    tri_fill:   { id:"tri_fill",   shape:"tri",    fill:"solid",   bg:"white" },  // 三角
+    // invert_sq:  { id:"invert_sq",  shape:"square", fill:"solid",   bg:"black" }, // ←安全版ではOFF
+  };
 
-function pickThemeForType(type){
-  const pool = (POOL_BY_TYPE[type] || ["logic_sq"]).map(k => THEMES[k]);
-  return pool[Math.floor(Math.random()*pool.length)];
-}
-  
+  // タイプ別：同じ問題でも “見た目が毎回同じ” を防ぐ（②）
+  const POOL_BY_TYPE = {
+    matrix3x3:     ["logic_sq","logic_out","tri_fill"],
+    relation2x2:   ["logic_sq","logic_out"],
+    triomino4x4:   ["logic_sq"], // 記号問題は別枠で十分
+    countAdd3x3:   ["count_hat","logic_out","logic_sq"],
+    shiftChain3x3: ["motion_dot","logic_out"],
+    mirrorXor3x3:  ["logic_out","logic_sq","tri_fill"],
+  };
+
+  function pickThemeForType(type){
+    const poolKeys = POOL_BY_TYPE[type] || ["logic_sq"];
+    const pool = poolKeys.map(k => THEMES[k]).filter(Boolean);
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+
   // triomino option key
   const triKey = (op) => {
     const e = op.empty2x2.join(",");
@@ -625,99 +628,95 @@ function pickThemeForType(type){
     return Array(9).fill(0);
   }
 
-  // ========= SVG render (3x3 black squares) =========
+  // ========= SVG render (テーマ対応) =========
   function cellToSVG(c, size=140, theme=THEMES.logic_sq){
-  const s = size/3;
+    const s = size/3;
 
-  const bgFill = (theme.bg==="black") ? "#000" : "#fff";
-  const fgFill = (theme.bg==="black") ? "#fff" : "#000";
+    const bgFill = (theme.bg==="black") ? "#000" : "#fff";
+    const fgFill = (theme.bg==="black") ? "#fff" : "#000";
 
-  // shape builders
-  const drawSquare = (x,y,w,h,fillMode) => {
-    if (fillMode==="outline"){
-      return `<rect x="${x+4}" y="${y+4}" width="${w-8}" height="${h-8}" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
-    }
-    if (fillMode==="hatch"){
-      // ハッチ：斜線をクリップで切る（簡易）
-      const id = `h${Math.random().toString(16).slice(2)}`;
-      return `
-        <defs>
-          <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
-          </pattern>
-        </defs>
-        <rect x="${x+4}" y="${y+4}" width="${w-8}" height="${h-8}" fill="url(#${id})" />
-      `;
-    }
-    // solid
-    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fgFill}"/>`;
-  };
+    const drawSquare = (x,y,w,h,fillMode) => {
+      if (fillMode==="outline"){
+        return `<rect x="${x+4}" y="${y+4}" width="${w-8}" height="${h-8}" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
+      }
+      if (fillMode==="hatch"){
+        const id = `h${Math.random().toString(16).slice(2)}`;
+        return `
+          <defs>
+            <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
+            </pattern>
+          </defs>
+          <rect x="${x+4}" y="${y+4}" width="${w-8}" height="${h-8}" fill="url(#${id})" />
+        `;
+      }
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fgFill}"/>`;
+    };
 
-  const drawCircle = (x,y,w,h,fillMode) => {
-    const cx = x + w/2, cy = y + h/2;
-    const r  = Math.min(w,h)*0.32;
-    if (fillMode==="outline"){
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
-    }
-    if (fillMode==="hatch"){
-      const id = `hc${Math.random().toString(16).slice(2)}`;
-      return `
-        <defs>
-          <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
-          </pattern>
-        </defs>
-        <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})"/>
-      `;
-    }
-    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fgFill}"/>`;
-  };
+    const drawCircle = (x,y,w,h,fillMode) => {
+      const cx = x + w/2, cy = y + h/2;
+      const r  = Math.min(w,h)*0.32;
+      if (fillMode==="outline"){
+        return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
+      }
+      if (fillMode==="hatch"){
+        const id = `hc${Math.random().toString(16).slice(2)}`;
+        return `
+          <defs>
+            <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
+            </pattern>
+          </defs>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})"/>
+        `;
+      }
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fgFill}"/>`;
+    };
 
-  const drawTri = (x,y,w,h,fillMode) => {
-    const p = 8;
-    const x1 = x + w/2, y1 = y + p;
-    const x2 = x + w - p, y2 = y + h - p;
-    const x3 = x + p,     y3 = y + h - p;
-    if (fillMode==="outline"){
-      return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
-    }
-    if (fillMode==="hatch"){
-      const id = `ht${Math.random().toString(16).slice(2)}`;
-      return `
-        <defs>
-          <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
-          </pattern>
-        </defs>
-        <path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="url(#${id})"/>
-      `;
-    }
-    return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="${fgFill}"/>`;
-  };
+    const drawTri = (x,y,w,h,fillMode) => {
+      const p = 8;
+      const x1 = x + w/2, y1 = y + p;
+      const x2 = x + w - p, y2 = y + h - p;
+      const x3 = x + p,     y3 = y + h - p;
+      if (fillMode==="outline"){
+        return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
+      }
+      if (fillMode==="hatch"){
+        const id = `ht${Math.random().toString(16).slice(2)}`;
+        return `
+          <defs>
+            <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
+            </pattern>
+          </defs>
+          <path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="url(#${id})"/>
+        `;
+      }
+      return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="${fgFill}"/>`;
+    };
 
-  let marks = "";
-  for(let i=0;i<9;i++){
-    if(!c[i]) continue;
-    const x = (i%3)*s, y = Math.floor(i/3)*s;
-    if (theme.shape==="circle") marks += drawCircle(x,y,s,s,theme.fill);
-    else if (theme.shape==="tri") marks += drawTri(x,y,s,s,theme.fill);
-    else marks += drawSquare(x,y,s,s,theme.fill);
+    let marks = "";
+    for(let i=0;i<9;i++){
+      if(!c[i]) continue;
+      const x = (i%3)*s, y = Math.floor(i/3)*s;
+      if (theme.shape==="circle") marks += drawCircle(x,y,s,s,theme.fill);
+      else if (theme.shape==="tri") marks += drawTri(x,y,s,s,theme.fill);
+      else marks += drawSquare(x,y,s,s,theme.fill);
+    }
+
+    const grid =
+      `<path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
+        stroke="rgba(255,255,255,0.35)" stroke-width="3" />
+       <path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
+        stroke="rgba(0,0,0,0.18)" stroke-width="1" />`;
+
+    const strokeOuter = (theme.bg==="black") ? "rgba(255,255,255,0.65)" : "#000";
+
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+      <rect width="${size}" height="${size}" fill="${bgFill}" stroke="${strokeOuter}" stroke-width="2"/>
+      ${marks}${grid}
+    </svg>`;
   }
-
-  const grid =
-    `<path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
-      stroke="rgba(255,255,255,0.35)" stroke-width="3" />
-     <path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
-      stroke="rgba(0,0,0,0.18)" stroke-width="1" />`;
-
-  // 背景が黒のときはグリッド線も少し見やすく
-  const strokeOuter = (theme.bg==="black") ? "rgba(255,255,255,0.65)" : "#000";
-
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
-    <rect width="${size}" height="${size}" fill="${bgFill}" stroke="${strokeOuter}" stroke-width="2"/>
-    ${marks}${grid}
-  </svg>`;
-}
 
   function buildOptions(answer){
     const candidates = [];
@@ -1270,7 +1269,8 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
       } else {
         const r = Math.floor(i/n);
         const c = i % n;
-        cell.innerHTML = cellToSVG(q.grid[r][c], 140);
+        // ★ 変更点：テーマを渡す（①②）
+        cell.innerHTML = cellToSVG(q.grid[r][c], 140, q.theme);
       }
       $matrix.appendChild(cell);
     }
@@ -1295,7 +1295,8 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
       if (q.type === "triomino4x4"){
         thumb.innerHTML = triominoOptionSVG(optAny, 64);
       } else {
-        thumb.innerHTML = cellToSVG(optAny, 64);
+        // ★ 変更点：テーマを渡す（①②）
+        thumb.innerHTML = cellToSVG(optAny, 64, q.theme);
       }
 
       btn.appendChild(badge);
@@ -1318,13 +1319,16 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
         if (uniq >= 6 && ones >= 1 && ones <= 8) break;
       }
     }
+
+    // ★ 追加（①②）：この問題に“見た目テーマ”を固定で持たせる
+    q.theme = pickThemeForType(q.type);
+
     // 難易度推定（CPU用）
     q.difficulty = estimateDifficulty(q);
     return q;
   }
 
   function estimateDifficulty(q){
-    // 0.0(易)〜1.0(難) ざっくり
     if(q.type === "triomino4x4") return 0.70;
     if(q.type === "matrix3x3"){
       const isNot = (q.rowRuleId==="not" || q.colRuleId==="not");
@@ -1343,41 +1347,27 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
 
   /* =========================
      CPU（人間っぽい版）
-     - ランク差、難易度、現在スコアで精度/速度が変わる
-     - たまに迷って遅れる
-     - 負けてる時は焦って速いがミス増
-     - 勝ってる時は慎重で遅いがミス減
-     - ギリギリ回答も発生
      ========================= */
   function planCpuAnswerHuman({cpuRank, playerRank, difficulty, limitSec, pScore, eScore}){
     const rand = ()=>Math.random();
 
     const rankDelta = clamp(cpuRank - playerRank, -3, 3);
-    const scoreDelta = clamp(eScore - pScore, -2, 2); // CPUが勝ってる:+
+    const scoreDelta = clamp(eScore - pScore, -2, 2);
 
-    // ===== 正答率 =====
     let acc =
       0.80
       - 0.30 * difficulty
       + 0.05 * rankDelta;
 
-    // 勝ってる→慎重（正答率↑）、負けてる→焦り（正答率↓）
-    acc += 0.03 * scoreDelta; // 勝ってるほど+、負けてるほど-
-
-    // 気分ブレ（集中/油断）
-    acc += (rand()-0.5) * 0.06; // ±0.03
+    acc += 0.03 * scoreDelta;
+    acc += (rand()-0.5) * 0.06;
     acc = clamp(acc, 0.18, 0.96);
 
     const willCorrect = rand() < acc;
 
-    // ===== 回答時間 =====
-    // ベースは難易度で増える
     let base = 4.8 + 8.2 * difficulty - 0.85 * rankDelta;
-
-    // 勝ってる→少し遅く、負けてる→少し速く
     base *= (scoreDelta>0) ? 1.06 : (scoreDelta<0 ? 0.94 : 1.00);
 
-    // fast/normal/slow
     const r = rand();
     let mode = "normal";
     if(r < 0.18) mode = "fast";
@@ -1387,25 +1377,18 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
     if(mode==="fast") time *= 0.72;
     if(mode==="slow") time *= 1.28;
 
-    // 不正解は迷いやすい（遅くなりがち）
     time *= willCorrect ? 0.92 : 1.10;
 
-    // 迷い演出
     if(rand() < (0.12 + 0.10*difficulty)) time += 0.7 + rand()*1.6;
 
-    // “ギリギリ回答”演出（難しい・負けてる・たまに）
     if(rand() < (0.06 + 0.06*difficulty + (scoreDelta<0 ? 0.04 : 0))){
-      time = Math.max(time, limitSec - (0.4 + rand()*1.0)); // 残り0.4〜1.4秒
-      // ギリは正答率も少し落ちる
+      time = Math.max(time, limitSec - (0.4 + rand()*1.0));
       if(rand() < 0.25) {
-        // 25%で直前ミス
         return { willCorrect:false, timeSec: clamp(time, 0.8, limitSec) };
       }
     }
 
-    // ノイズ
     time += (rand()-0.5) * 1.1;
-
     time = clamp(time, 0.8, limitSec);
     return { willCorrect, timeSec: time };
   }
@@ -1475,8 +1458,6 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
   setMsg("「開始」を押すと同時にスタートします。");
   drawStars($pStars, 0);
   drawStars($eStars, 0);
-  // 1問目のプレビュー（待機中に表示したいなら）
-  // state.q = makeBattleQuestion(); applyRuleColor(state.q); renderMatrix(state.q); renderOptions(state.q); setOptionsEnabled(false);
 
 })();
 </script>
