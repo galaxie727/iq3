@@ -1315,11 +1315,19 @@ Rule: 右 = 左 XOR 左の左右反転（対称合成）`;
       if (q.type === "triomino4x4"){
         const uniq = new Set(q.options.map(triKey)).size;
         if (uniq >= 6 && q.ansIndex >= 0) break;
-      } else {
-        const uniq = new Set(q.options.map(cellKey)).size;
-        const ones = countOnes(q.answer);
-        if (uniq >= 6 && ones >= 1 && ones <= 8) break;
-      }
+          } else {
+      const uniq = new Set(q.options.map(cellKey)).size;
+
+      // ★追加：盤面(穴以外)が「空(0個)」になってないかチェック
+      const visibleCells = q.grid.flat().filter(Boolean); // null(穴)除外
+      const okBoard = visibleCells.every(c => {
+        const n = countOnes(c);
+        return n >= 1 && n <= 8;
+      });
+
+      const onesAns = countOnes(q.answer);
+      if (uniq >= 6 && okBoard && onesAns >= 1 && onesAns <= 8) break;
+    }
     }
 
     // ★ 追加（①②）：この問題に“見た目テーマ”を固定で持たせる
