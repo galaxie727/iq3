@@ -550,7 +550,32 @@
   };
   const countOnes = (c) => c.reduce((s,v)=>s+(v?1:0),0);
   const cellKey = (c) => c.join("");
+  
+  // ========= Theme =========
+const THEMES = {
+  logic_sq:   { id:"logic_sq",   shape:"square", fill:"solid",   bg:"white" },  // 今の雰囲気
+  logic_out:  { id:"logic_out",  shape:"square", fill:"outline", bg:"white" },
+  count_hat:  { id:"count_hat",  shape:"square", fill:"hatch",   bg:"white" },  // 数・集計向き
+  motion_dot: { id:"motion_dot", shape:"circle", fill:"solid",   bg:"white" },  // シフト向き
+  tri_fill:   { id:"tri_fill",   shape:"tri",    fill:"solid",   bg:"white" },
+  invert_sq:  { id:"invert_sq",  shape:"square", fill:"solid",   bg:"black" },  // たまに映える
+};
 
+// 同じタイプでも“見た目が毎回同じ”を防ぐ（B）
+const POOL_BY_TYPE = {
+  matrix3x3:     ["logic_sq","logic_out","tri_fill","invert_sq"],
+  relation2x2:   ["logic_sq","logic_out","invert_sq"],
+  triomino4x4:   ["logic_sq"], // 記号問題は別枠で十分
+  countAdd3x3:   ["count_hat","logic_out","invert_sq"],
+  shiftChain3x3: ["motion_dot","logic_out","invert_sq"],
+  mirrorXor3x3:  ["logic_out","logic_sq","invert_sq"],
+};
+
+function pickThemeForType(type){
+  const pool = (POOL_BY_TYPE[type] || ["logic_sq"]).map(k => THEMES[k]);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+  
   // triomino option key
   const triKey = (op) => {
     const e = op.empty2x2.join(",");
@@ -601,25 +626,98 @@
   }
 
   // ========= SVG render (3x3 black squares) =========
-  function cellToSVG(c, size=140){
-    const s = size/3;
-    let rects = "";
-    for(let i=0;i<9;i++){
-      if(c[i]){
-        const x = (i%3)*s, y = Math.floor(i/3)*s;
-        rects += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#000"/>`;
-      }
+  function cellToSVG(c, size=140, theme=THEMES.logic_sq){
+  const s = size/3;
+
+  const bgFill = (theme.bg==="black") ? "#000" : "#fff";
+  const fgFill = (theme.bg==="black") ? "#fff" : "#000";
+
+  // shape builders
+  const drawSquare = (x,y,w,h,fillMode) => {
+    if (fillMode==="outline"){
+      return `<rect x="${x+4}" y="${y+4}" width="${w-8}" height="${h-8}" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
     }
-    const grid =
+    if (fillMode==="hatch"){
+      // ハッチ：斜線をクリップで切る（簡易）
+      const id = `h${Math.random().toString(16).slice(2)}`;
+      return `
+        <defs>
+          <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
+          </pattern>
+        </defs>
+        <rect x="${x+4}" y="${y+4}" width="${w-8}" height="${h-8}" fill="url(#${id})" />
+      `;
+    }
+    // solid
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fgFill}"/>`;
+  };
+
+  const drawCircle = (x,y,w,h,fillMode) => {
+    const cx = x + w/2, cy = y + h/2;
+    const r  = Math.min(w,h)*0.32;
+    if (fillMode==="outline"){
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
+    }
+    if (fillMode==="hatch"){
+      const id = `hc${Math.random().toString(16).slice(2)}`;
+      return `
+        <defs>
+          <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
+          </pattern>
+        </defs>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})"/>
+      `;
+    }
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fgFill}"/>`;
+  };
+
+  const drawTri = (x,y,w,h,fillMode) => {
+    const p = 8;
+    const x1 = x + w/2, y1 = y + p;
+    const x2 = x + w - p, y2 = y + h - p;
+    const x3 = x + p,     y3 = y + h - p;
+    if (fillMode==="outline"){
+      return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="none" stroke="${fgFill}" stroke-width="5"/>`;
+    }
+    if (fillMode==="hatch"){
+      const id = `ht${Math.random().toString(16).slice(2)}`;
+      return `
+        <defs>
+          <pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="12" stroke="${fgFill}" stroke-width="4"/>
+          </pattern>
+        </defs>
+        <path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="url(#${id})"/>
+      `;
+    }
+    return `<path d="M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} Z" fill="${fgFill}"/>`;
+  };
+
+  let marks = "";
+  for(let i=0;i<9;i++){
+    if(!c[i]) continue;
+    const x = (i%3)*s, y = Math.floor(i/3)*s;
+    if (theme.shape==="circle") marks += drawCircle(x,y,s,s,theme.fill);
+    else if (theme.shape==="tri") marks += drawTri(x,y,s,s,theme.fill);
+    else marks += drawSquare(x,y,s,s,theme.fill);
+  }
+
+  const grid =
     `<path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
       stroke="rgba(255,255,255,0.35)" stroke-width="3" />
      <path d="M ${s} 0 V ${size} M ${2*s} 0 V ${size} M 0 ${s} H ${size} M 0 ${2*s} H ${size}"
       stroke="rgba(0,0,0,0.18)" stroke-width="1" />`;
-    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
-      <rect width="${size}" height="${size}" fill="#fff" stroke="#000" stroke-width="2"/>
-      ${rects}${grid}
-    </svg>`;
-  }
+
+  // 背景が黒のときはグリッド線も少し見やすく
+  const strokeOuter = (theme.bg==="black") ? "rgba(255,255,255,0.65)" : "#000";
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+    <rect width="${size}" height="${size}" fill="${bgFill}" stroke="${strokeOuter}" stroke-width="2"/>
+    ${marks}${grid}
+  </svg>`;
+}
 
   function buildOptions(answer){
     const candidates = [];
